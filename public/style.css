@@ -1,0 +1,635 @@
+/* style.css */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: linear-gradient(145deg, #1e2a38, #2c3e50);
+    font-family: 'Exo 2', sans-serif;
+    color: #ecf0f1;
+    padding: 20px;
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: rgba(44, 62, 80, 0.95);
+    padding: 25px 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 1200px;
+    animation: slideDown 1s ease-out;
+}
+
+header img {
+    width: 100px;
+    height: auto;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 0 15px rgba(230, 126, 34, 0.7), 0 0 25px rgba(52, 152, 219, 0.5);
+}
+
+header img:hover {
+    transform: scale(1.1);
+}
+
+header h1 {
+    font-size: 3em;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    background: linear-gradient(45deg, #e67e22, #3498db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(230, 126, 34, 0.6);
+    transition: transform 0.3s ease;
+}
+
+header h1:hover {
+    transform: translateY(-3px);
+}
+
+h2 {
+    text-align: center;
+    font-size: 2.2em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #3498db;
+    margin: 25px 0;
+    text-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+h2:hover {
+    color: #e67e22;
+    text-shadow: 0 0 8px rgba(230, 126, 34, 0.5);
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background: rgba(44, 62, 80, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 1s ease-out;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.dashboard-header h2 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.dashboard-header p {
+    font-size: 1.2em;
+    color: #bdc3c7;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-header p:hover {
+    opacity: 1;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 10px;
+}
+
+/* Dashboard Card */
+.dashboard-card {
+    background: linear-gradient(145deg, #2c3e50, #34495e);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    color: #ecf0f1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: cardFadeIn 0.5s ease-out forwards;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+    background: linear-gradient(145deg, #34495e, #2c3e50);
+}
+
+.dashboard-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 152, 219, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover:before {
+    opacity: 1;
+}
+
+.card-icon {
+    font-size: 2.5em;
+    color: #3498db;
+    margin-bottom: 15px;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.dashboard-card:hover .card-icon {
+    color: #e67e22;
+    transform: scale(1.2);
+}
+
+.dashboard-card h3 {
+    font-size: 1.5em;
+    color: #e67e22;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+}
+
+.dashboard-card:hover h3 {
+    color: #3498db;
+}
+
+.dashboard-card p {
+    font-size: 1em;
+    color: #bdc3c7;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover p {
+    opacity: 1;
+}
+
+/* Logout Card Styling */
+.logout-card .card-icon {
+    color: #e74c3c;
+}
+
+.logout-card:hover .card-icon {
+    color: #c0392b;
+}
+
+.logout-card h3 {
+    color: #e74c3c;
+}
+
+.logout-card:hover h3 {
+    color: #c0392b;
+}
+
+/* Form Styles */
+form {
+    max-width: 600px;
+    margin: 40px auto;
+    background: rgba(44, 62, 80, 0.95);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+form:hover {
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.3);
+    transform: translateY(-2px);
+}
+
+label {
+    display: block;
+    font-size: 1em;
+    color: #e67e22;
+    margin-bottom: 5px;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+label:hover {
+    color: #3498db;
+    transform: translateX(2px);
+}
+
+input[type="text"],
+input[type="number"],
+select,
+input[type="file"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 0 10px 15px 10px;
+    background: #34495e;
+    border: 1px solid #3498db;
+    border-radius: 4px;
+    color: #ecf0f1;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.95em;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover,
+input[type="file"]:hover {
+    border-color: #e67e22;
+    box-shadow: 0 0 8px rgba(230, 126, 34, 0.3);
+    transform: scale(1.02);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+input[type="file"]:focus {
+    outline: none;
+    border-color: #e67e22;
+    box-shadow: 0 0 6px rgba(230, 126, 34, 0.5);
+    background: #3e5c76;
+    transform: scale(1.02);
+}
+
+input[type="file"] {
+    padding: 5px 10px;
+}
+
+#breeding-dates-container input {
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(45deg, #3498db, #e67e22);
+    color: #ffffff;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    background: linear-gradient(45deg, #e67e22, #3498db);
+    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+    transform: translateY(-2px) scale(1.05);
+}
+
+button:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+
+button:hover:before {
+    width: 200px;
+    height: 200px;
+}
+
+button:after {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 0;
+    height: 0;
+    background: rgba(52, 152, 219, 0.3);
+    transform: rotate(45deg);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+button:hover:after {
+    width: 120%;
+    height: 120%;
+}
+
+#add-breeding-date {
+    margin: 10px 10px;
+}
+
+a {
+    display: block;
+    text-align: center;
+    margin: 10px auto;
+    padding: 10px 25px;
+    width: fit-content;
+    background: linear-gradient(45deg, #3498db, #e67e22);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    font-size: 1em;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+a:hover {
+    background: linear-gradient(45deg, #e67e22, #3498db);
+    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+    transform: translateY(-2px) rotate(2deg);
+}
+
+a:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+
+a:hover:before {
+    width: 200px;
+    height: 200px;
+}
+
+#puppy_count_container {
+    transition: opacity 0.3s ease, height 0.3s ease;
+    height: auto;
+}
+
+#puppy_count_container[style*="display: none"] {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+#puppy_count_container[style*="display: block"] {
+    opacity: 1;
+    height: auto;
+}
+
+/* Footer Styles */
+footer {
+    background: rgba(44, 62, 80, 0.95);
+    padding: 20px;
+    text-align: center;
+    margin-top: auto;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+}
+
+footer p {
+    margin: 5px 0;
+    font-size: 1em;
+    color: #ecf0f1;
+}
+
+footer .contact-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10px 0;
+}
+
+footer a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1em;
+}
+
+footer a:hover {
+    color: #e67e22;
+    transform: translateX(5px);
+}
+
+footer i {
+    font-size: 1.5em;
+    transition: transform 0.3s ease;
+}
+
+footer a:hover i {
+    transform: scale(1.2);
+}
+
+/* Animations */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    header {
+        flex-direction: column;
+        margin: 10px;
+        padding: 15px;
+    }
+
+    header img {
+        width: 80px;
+    }
+
+    header h1 {
+        font-size: 2em;
+    }
+
+    .dashboard-header h2 {
+        font-size: 2em;
+    }
+
+    .dashboard-header p {
+        font-size: 1em;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-card h3 {
+        font-size: 1.3em;
+    }
+
+    .dashboard-card p {
+        font-size: 0.9em;
+    }
+
+    .card-icon {
+        font-size: 2em;
+    }
+
+    h2 {
+        font-size: 1.8em;
+        margin: 20px 0;
+    }
+
+    form {
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    input[type="file"] {
+        padding: 8px;
+        font-size: 0.85em;
+        margin: 0 8px 10px 8px;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 0.8em;
+    }
+
+    a {
+        padding: 8px 20px;
+        font-size: 0.9em;
+    }
+
+    #add-breeding-date {
+        margin: 10px 8px;
+    }
+
+    footer .contact-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    header img {
+        width: 60px;
+    }
+
+    header h1 {
+        font-size: 1.5em;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.6em;
+    }
+
+    .dashboard-header p {
+        font-size: 0.9em;
+    }
+
+    .dashboard-card h3 {
+        font-size: 1.1em;
+    }
+
+    .dashboard-card p {
+        font-size: 0.8em;
+    }
+
+    .card-icon {
+        font-size: 1.8em;
+    }
+
+    h2 {
+        font-size: 1.4em;
+        margin: 15px 0;
+    }
+
+    form {
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    input[type="file"] {
+        padding: 6px;
+        font-size: 0.75em;
+        margin: 0 6px 8px 6px;
+    }
+
+    button {
+        padding: 6px 12px;
+        font-size: 0.7em;
+    }
+
+    a {
+        padding: 6px 15px;
+        font-size: 0.8em;
+    }
+
+    #add-breeding-date {
+        margin: 10px 6px;
+    }
+}

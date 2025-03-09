@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter Stud Details - A&A Kennels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e2a38, #2c3e50);
+            font-family: 'Exo 2', sans-serif;
+            color: #ecf0f1;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Particle Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="10" cy="10" r="1" fill="rgba(52, 152, 219, 0.3)" opacity="0.5"><animate attributeName="cx" from="10" to="100%" dur="10s" repeatCount="indefinite" /><animate attributeName="cy" from="10" to="100%" dur="15s" repeatCount="indefinite" /></circle><circle cx="50%" cy="50%" r="1" fill="rgba(230, 126, 34, 0.3)" opacity="0.5"><animate attributeName="cx" from="50%" to="0" dur="12s" repeatCount="indefinite" /><animate attributeName="cy" from="50%" to="100%" dur="8s" repeatCount="indefinite" /></circle></svg>');
+            z-index: -1;
+            pointer-events: none;
+            animation: subtleMove 20s infinite linear;
+        }
+
+        @keyframes subtleMove {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* Header Styles with Glassmorphism */
+        header {
+            background: rgba(44, 62, 80, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-radius: 15px;
+            margin: 20px auto;
+            max-width: 1200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideDown 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.2) 0%, transparent 70%);
+            animation: rotateGlow 10s infinite linear;
+        }
+
+        @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        header img {
+            width: 100px;
+            height: auto;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.7), 0 0 25px rgba(52, 152, 219, 0.5);
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        header img:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #e67e22, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(230, 126, 34, 0.8), 0 0 25px rgba(52, 152, 219, 0.5);
+            transition: transform 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        header h1:hover {
+            transform: translateY(-5px);
+            text-shadow: 0 0 20px rgba(230, 126, 34, 1), 0 0 30px rgba(52, 152, 219, 0.8);
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.5em;
+            color: #3498db;
+            margin: 25px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+            position: relative;
+            animation: glowText 3s infinite ease-in-out;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #3498db, #e67e22);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        @keyframes glowText {
+            0%, 100% { text-shadow: 0 0 10px rgba(52, 152, 219, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(230, 126, 34, 0.8); }
+        }
+
+        h2:hover {
+            color: #e67e22;
+            text-shadow: 0 0 15px rgba(230, 126, 34, 1);
+        }
+
+        /* Form Container with Neumorphism */
+        form {
+            max-width: 600px;
+            margin: 40px auto;
+            background: rgba(44, 62, 80, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4), -5px -5px 15px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, transparent 70%);
+            opacity: 0.3;
+            z-index: -1;
+            animation: pulseGlow 5s infinite ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        form:hover {
+            transform: translateY(-5px);
+            box-shadow: 5px 5px 20px rgba(52, 152, 219, 0.5), -5px -5px 20px rgba(230, 126, 34, 0.2);
+        }
+
+        /* Label Styles with Hover Animation */
+        label {
+            display: block;
+            font-size: 1em;
+            color: #e67e22;
+            margin-bottom: 5px;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        label::before {
+            content: '✧';
+            position: absolute;
+            left: -20px;
+            opacity: 0;
+            color: #3498db;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        label:hover::before {
+            opacity: 1;
+            transform: translateX(5px);
+        }
+
+        label:hover {
+            color: #3498db;
+            transform: translateX(10px);
+        }
+
+        /* Input Fields with 3D Effect */
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin: 0 10px 15px 10px;
+            background: rgba(52, 73, 94, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 8px;
+            color: #ecf0f1;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 0.95em;
+            box-sizing: border-box;
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.2), inset -3px -3px 6px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder {
+            color: #bdc3c7;
+            opacity: 0.7;
+        }
+
+        input[type="text"]:hover,
+        input[type="number"]:hover,
+        input[type="date"]:hover,
+        select:hover,
+        input[type="file"]:hover {
+            border-color: #e67e22;
+            box-shadow: 0 0 10px rgba(230, 126, 34, 0.5);
+            transform: translateY(-2px);
+            background: rgba(62, 92, 118, 0.7);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #e67e22;
+            box-shadow: 0 0 12px rgba(230, 126, 34, 0.7);
+            background: rgba(62, 92, 118, 0.9);
+            transform: translateY(-2px);
+        }
+
+        input[type="file"] {
+            padding: 5px 10px;
+        }
+
+        #breeding-dates-container input {
+            margin-bottom: 10px;
+        }
+
+        /* File Input Custom Styling */
+        input[type="file"] + p {
+            margin: -10px 10px 15px 10px;
+            color: #bdc3c7;
+            font-size: 0.85em;
+            transition: color 0.3s ease;
+        }
+
+        input[type="file"]:hover + p {
+            color: #e67e22;
+        }
+
+        /* Button Styles with 3D Hover and Glow */
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #3498db, #e67e22);
+            color: #ffffff;
+            font-size: 0.95em;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3), -3px -3px 8px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #e67e22, #3498db);
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.7);
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        button:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #add-breeding-date {
+            margin: 10px 10px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+
+        #add-breeding-date:hover {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            box-shadow: 0 0 15px rgba(39, 174, 96, 0.7);
+        }
+
+        /* Links with Card-Like Hover Effects */
+        .back-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        a {
+            display: inline-block;
+            text-align: center;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #3498db, #e67e22);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3), -3px -3px 8px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            font-size: 1em;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        a:hover::before {
+            left: 100%;
+        }
+
+        a:hover {
+            background: linear-gradient(45deg, #e67e22, #3498db);
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.7);
+            transform: translateY(-3px) rotate(2deg);
+        }
+
+        /* Puppy Count Container Animation */
+        #puppy_count_container {
+            transition: all 0.5s ease;
+            height: auto;
+        }
+
+        #puppy_count_container[style*="display: none"] {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transform: translateY(-10px);
+        }
+
+        #puppy_count_container[style*="display: block"] {
+            opacity: 1;
+            height: auto;
+            transform: translateY(0);
+        }
+
+        /* Footer with Glassmorphism */
+        footer {
+            background: rgba(44, 62, 80, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+            font-size: 1em;
+            color: #ecf0f1;
+        }
+
+        footer .contact-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px 0;
+        }
+
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s ease, transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1em;
+            background: none;
+            box-shadow: none;
+        }
+
+        footer a:hover {
+            color: #e67e22;
+            transform: translateX(5px);
+            box-shadow: none;
+        }
+
+        footer i {
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+        }
+
+        footer a:hover i {
+            transform: scale(1.2);
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                margin: 10px;
+                padding: 15px;
+            }
+
+            header img {
+                width: 80px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.8em;
+                margin: 20px 0;
+            }
+
+            form {
+                margin: 30px auto;
+                padding: 20px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            input[type="date"],
+            select,
+            input[type="file"] {
+                padding: 8px;
+                font-size: 0.85em;
+                margin: 0 8px 10px 8px;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 0.8em;
+            }
+
+            a {
+                padding: 8px 20px;
+                font-size: 0.9em;
+            }
+
+            #add-breeding-date {
+                margin: 10px 8px;
+            }
+
+            footer .contact-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header img {
+                width: 60px;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            h2 {
+                font-size: 1.4em;
+                margin: 15px 0;
+            }
+
+            form {
+                margin: 20px auto;
+                padding: 15px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            input[type="date"],
+            select,
+            input[type="file"] {
+                padding: 6px;
+                font-size: 0.75em;
+                margin: 0 6px 8px 6px;
+            }
+
+            button {
+                padding: 6px 12px;
+                font-size: 0.7em;
+            }
+
+            a {
+                padding: 6px 15px;
+                font-size: 0.8em;
+            }
+
+            #add-breeding-date {
+                margin: 10px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="/uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo">
+        <h1>A&A Kennels - Enter Stud Details</h1>
+    </header>
+
+    <h2>Enter Stud Details</h2>
+
+    <form action="/add-stud" method="POST" enctype="multipart/form-data">
+        <label for="stud_name">Stud Name:</label>
+        <input type="text" id="stud_name" name="stud_name" required>
+
+        <label for="owner_name">Owner Name:</label>
+        <input type="text" id="owner_name" name="owner_name" required>
+
+        <label for="owner_contact">Owner Contact:</label>
+        <input type="text" id="owner_contact" name="owner_contact" required>
+
+        <label for="female_dog_color">Female Dog Color:</label>
+        <input type="text" id="female_dog_color" name="female_dog_color" required>
+
+        <label for="female_breed">Female Breed:</label>
+        <input type="text" id="female_breed" name="female_breed" required>
+
+        <label for="female_first_day_of_heat">First Day of Heat:</label>
+        <input type="date" id="female_first_day_of_heat" name="female_first_day_of_heat" required>
+
+        <div id="breeding-dates-container">
+            <label>Breeding Dates:</label>
+            <input type="date" name="breeding_dates[]" required>
+            <button type="button" id="add-breeding-date">Add Breeding Date</button>
+        </div>
+
+        <label for="breeding_image">Breeding Image:</label>
+        <input type="file" id="breeding_image" name="breeding_image" accept="image/*">
+        <p>No file chosen</p>
+
+        <label for="female_dog_image">Female Image:</label>
+        <input type="file" id="female_dog_image" name="female_dog_image" accept="image/*">
+        <p>No file chosen</p>
+
+        <label for="female_status">Female Status:</label>
+        <select id="female_status" name="female_status" required>
+            <option value="Waiting">Waiting</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Failure">Failure</option>
+        </select>
+
+        <div id="puppy_count_container" style="display: none;">
+            <label for="female_puppy_count">Puppy Count:</label>
+            <input type="number" id="female_puppy_count" name="female_puppy_count" min="0">
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <div class="back-links">
+        <a href="/admin-dashboard">Admin Dashboard</a>
+        <a href="/">View Male Studs</a>
+        <a href="/logout">Logout</a>
+    </div>
+
+    <footer>
+        <p>Contact Us:</p>
+        <div class="contact-section">
+            <p>
+                <a href="https://wa.me/917338040633" target="_blank">
+                    <i class="fab fa-whatsapp"></i> 7338040633
+                </a>
+            </p>
+            <p>
+                <a href="https://www.facebook.com/share/1HdVyCqHuM/" target="_blank">
+                    <i class="fab fa-facebook-f"></i> A&A Kennels
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusSelect = document.getElementById('female_status');
+            const puppyCountContainer = document.getElementById('puppy_count_container');
+            const addBreedingDateBtn = document.getElementById('add-breeding-date');
+            const breedingDatesContainer = document.getElementById('breeding-dates-container');
+
+            statusSelect.addEventListener('change', () => {
+                if (statusSelect.value === 'Delivered') {
+                    puppyCountContainer.style.display = 'block';
+                } else {
+                    puppyCountContainer.style.display = 'none';
+                }
+            });
+
+            addBreedingDateBtn.addEventListener('click', () => {
+                const newDateInput = document.createElement('input');
+                newDateInput.type = 'date';
+                newDateInput.name = 'breeding_dates[]';
+                newDateInput.required = true;
+                newDateInput.style.marginBottom = '10px';
+                breedingDatesContainer.insertBefore(newDateInput, addBreedingDateBtn);
+            });
+        });
+    </script>
+</body>
+</html>
