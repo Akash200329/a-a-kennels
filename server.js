@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("mysql");
+const mysql = require("mysql2"); // Changed to mysql2
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const path = require("path");
@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
 
 const app = express();
 
@@ -48,18 +49,21 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Database Connection
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "root",
-  database: process.env.DB_NAME || "stud_db",
+    host: process.env.DB_HOST || "localhost",
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "root",
+    database: process.env.DB_NAME || "stud_db",
+    ssl: {
+        ca: fs.readFileSync(process.env.DB_SSL_CA) // Added SSL for Aiven
+    }
 });
-
 db.connect((err) => {
-  if (err) {
-    console.error("Database connection failed:", err);
-    process.exit(1);
-  }
-  console.log("Connected to MySQL Database.");
+    if (err) {
+        console.error('Error connecting to Aiven MySQL:', err);
+        return;
+    }
+    console.log('Connected to Aiven MySQL!');
 });
 
 // Middleware to Check Admin Role
