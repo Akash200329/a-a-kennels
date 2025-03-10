@@ -1827,1031 +1827,636 @@ app.post("/login", (req, res) => {
   
   
 // View Stored Stud Details
-// View Stored Stud Details
 app.get("/studs", isAdmin, (req, res) => {
     const sql = `
-          SELECT 
-              s.id, 
-              s.name, 
-              s.owner_name, 
-              s.owner_contact, 
-              s.female_dog_color, 
-              s.female_breed, 
-              DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m-%d') AS female_first_day_of_heat,
-              DATE_FORMAT(DATE_ADD(s.female_first_day_of_heat, INTERVAL 6 MONTH), '%Y-%m-%d') AS next_heat_cycle,
-              s.female_status, 
-              s.female_puppy_count, 
-              s.female_dog_image, 
-              s.breeding_image,
-              GROUP_CONCAT(DISTINCT DATE_FORMAT(b.breeding_date, '%Y-%m-%d') ORDER BY b.breeding_date ASC SEPARATOR ', ') AS breeding_dates,
-              DATE_FORMAT(DATE_ADD(MAX(b.breeding_date), INTERVAL 63 DAY), '%Y-%m-%d') AS puppy_delivery_date
-          FROM studs s
-          LEFT JOIN breeding_dates b ON s.id = b.stud_id
-          GROUP BY s.id
-      `;
+        SELECT 
+            s.id, 
+            s.name, 
+            s.owner_name, 
+            s.owner_contact, 
+            s.female_dog_color, 
+            s.female_breed, 
+            DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m-%d') AS female_first_day_of_heat,
+            DATE_FORMAT(DATE_ADD(s.female_first_day_of_heat, INTERVAL 6 MONTH), '%Y-%m-%d') AS next_heat_cycle,
+            s.female_status, 
+            s.female_puppy_count, 
+            s.female_dog_image, 
+            s.breeding_image,
+            GROUP_CONCAT(DISTINCT DATE_FORMAT(b.breeding_date, '%Y-%m-%d') ORDER BY b.breeding_date ASC SEPARATOR ', ') AS breeding_dates,
+            DATE_FORMAT(DATE_ADD(MAX(b.breeding_date), INTERVAL 63 DAY), '%Y-%m-%d') AS puppy_delivery_date
+        FROM studs s
+        LEFT JOIN breeding_dates b ON s.id = b.stud_id
+        GROUP BY s.id
+    `;
     db.query(sql, (err, results) => {
-      if (err) {
-        console.error("Database query error:", err);
-        return res.status(500).send("Internal Server Error");
-      }
-  
-      let tableContent = `
-              <!DOCTYPE html>
-              <html lang="en">
-              <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>Stored Stud Details - A&A Kennels</title>
-                  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&display=swap" rel="stylesheet">
-                  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-                  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
-                  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
-                  <style>
-                      /* Reset and Base Styles */
-                      * {
-                          box-sizing: border-box;
-                          margin: 0;
-                          padding: 0;
-                      }
-  
-                      body {
-                          background: linear-gradient(135deg, #1e2a38, #2c3e50);
-                          font-family: 'Exo 2', sans-serif;
-                          color: #ecf0f1;
-                          margin: 0;
-                          padding: 0;
-                          min-height: 100vh;
-                          display: flex;
-                          flex-direction: column;
-                          overflow-x: hidden;
-                          position: relative;
-                      }
-  
-                      /* Background Particle Effect */
-                      body::before {
-                          content: '';
-                          position: fixed;
-                          top: 0;
-                          left: 0;
-                          width: 100%;
-                          height: 100%;
-                          background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="10" cy="10" r="2" fill="rgba(52, 152, 219, 0.4)" opacity="0.6"><animate attributeName="cx" from="10" to="100%" dur="8s" repeatCount="indefinite" /><animate attributeName="cy" from="10" to="100%" dur="12s" repeatCount="indefinite" /></circle><circle cx="50%" cy="50%" r="2" fill="rgba(230, 126, 34, 0.4)" opacity="0.6"><animate attributeName="cx" from="50%" to="0" dur="10s" repeatCount="indefinite" /><animate attributeName="cy" from="50%" to="100%" dur="6s" repeatCount="indefinite" /></circle><circle cx="20%" cy="80%" r="2" fill="rgba(52, 152, 219, 0.4)" opacity="0.6"><animate attributeName="cx" from="20%" to="80%" dur="14s" repeatCount="indefinite" /><animate attributeName="cy" from="80%" to="20%" dur="9s" repeatCount="indefinite" /></circle></svg>');
-                          z-index: -1;
-                          pointer-events: none;
-                          animation: subtleMove 25s infinite linear;
-                      }
-  
-                      @keyframes subtleMove {
-                          0% { transform: translate(0, 0); }
-                          50% { transform: translate(15px, -15px); }
-                          100% { transform: translate(0, 0); }
-                      }
-  
-                      /* Header with Glassmorphism and Glow */
-                      header {
-                          background: rgba(44, 62, 80, 0.3);
-                          backdrop-filter: blur(12px);
-                          -webkit-backdrop-filter: blur(12px);
-                          padding: 25px 20px;
-                          text-align: center;
-                          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-                          display: flex;
-                          align-items: center;
-                          justify-content: center;
-                          gap: 20px;
-                          border-radius: 15px;
-                          margin: 20px auto;
-                          max-width: 1200px;
-                          border: 1px solid rgba(255, 255, 255, 0.1);
-                          animation: slideDown 1s ease-out;
-                          position: relative;
-                          overflow: hidden;
-                      }
-  
-                      header::before {
-                          content: '';
-                          position: absolute;
-                          top: -50%;
-                          left: -50%;
-                          width: 200%;
-                          height: 200%;
-                          background: radial-gradient(circle, rgba(52, 152, 219, 0.2) 0%, transparent 70%);
-                          animation: rotateGlow 12s infinite linear;
-                      }
-  
-                      @keyframes rotateGlow {
-                          0% { transform: rotate(0deg); }
-                          100% { transform: rotate(360deg); }
-                      }
-  
-                      header img {
-                          width: 100px;
-                          height: auto;
-                          border-radius: 50%;
-                          transition: transform 0.3s ease;
-                          box-shadow: 0 0 15px rgba(230, 126, 34, 0.7), 0 0 25px rgba(52, 152, 219, 0.5);
-                          animation: pulse 2s infinite ease-in-out;
-                      }
-  
-                      header img:hover {
-                          transform: scale(1.1) rotate(5deg);
-                      }
-  
-                      @keyframes pulse {
-                          0%, 100% { transform: scale(1); }
-                          50% { transform: scale(1.05); }
-                      }
-  
-                      header h1 {
-                          font-size: 2.5em;
-                          margin: 0;
-                          text-transform: uppercase;
-                          letter-spacing: 2px;
-                          background: linear-gradient(45deg, #e67e22, #3498db);
-                          -webkit-background-clip: text;
-                          -webkit-text-fill-color: transparent;
-                          text-shadow: 0 0 10px rgba(230, 126, 34, 0.6);
-                          transition: transform 0.3s ease;
-                      }
-  
-                      header h1:hover {
-                          transform: translateY(-3px);
-                          text-shadow: 0 0 15px rgba(230, 126, 34, 0.8);
-                      }
-  
-                      /* Main Heading with Glow */
-                      h2 {
-                          font-size: 2.5em;
-                          color: #3498db;
-                          text-align: center;
-                          margin: 30px 0 20px;
-                          text-transform: uppercase;
-                          letter-spacing: 2px;
-                          text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
-                          position: relative;
-                          animation: glowText 3s infinite ease-in-out;
-                      }
-  
-                      h2::after {
-                          content: '';
-                          position: absolute;
-                          bottom: -10px;
-                          left: 50%;
-                          transform: translateX(-50%);
-                          width: 50px;
-                          height: 3px;
-                          background: linear-gradient(90deg, #3498db, #e67e22);
-                          border-radius: 2px;
-                          box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
-                      }
-  
-                      @keyframes glowText {
-                          0%, 100% { text-shadow: 0 0 10px rgba(52, 152, 219, 0.5); }
-                          50% { text-shadow: 0 0 20px rgba(230, 126, 34, 0.8); }
-                      }
-  
-                      h2:hover {
-                          color: #e67e22;
-                          text-shadow: 0 0 15px rgba(230, 126, 34, 1);
-                      }
-  
-                      /* Search and Filter Container with Glassmorphism */
-                      .search-filter-container {
-                          max-width: 1200px;
-                          margin: 20px auto;
-                          display: flex;
-                          gap: 20px;
-                          justify-content: center;
-                          align-items: center;
-                          padding: 15px 25px;
-                          background: rgba(44, 62, 80, 0.3);
-                          backdrop-filter: blur(10px);
-                          -webkit-backdrop-filter: blur(10px);
-                          border-radius: 12px;
-                          box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3), -5px -5px 15px rgba(255, 255, 255, 0.05);
-                          border: 1px solid rgba(255, 255, 255, 0.1);
-                          transition: transform 0.3s ease, box-shadow 0.3s ease;
-                          position: relative;
-                          overflow: hidden;
-                      }
-  
-                      .search-filter-container::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: 0;
-                          width: 100%;
-                          height: 100%;
-                          background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, transparent 70%);
-                          opacity: 0.3;
-                          z-index: -1;
-                          animation: pulseGlow 5s infinite ease-in-out;
-                      }
-  
-                      @keyframes pulseGlow {
-                          0%, 100% { opacity: 0.3; }
-                          50% { opacity: 0.6; }
-                      }
-  
-                      .search-filter-container:hover {
-                          transform: translateY(-3px);
-                          box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-                      }
-  
-                      .search-filter-container input[type="text"],
-                      .search-filter-container select {
-                          padding: 12px 15px;
-                          border: 1px solid #3498db;
-                          border-radius: 8px;
-                          background: rgba(52, 73, 94, 0.5);
-                          color: #ecf0f1;
-                          font-size: 1em;
-                          outline: none;
-                          transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-                          width: 250px;
-                      }
-  
-                      .search-filter-container input[type="text"]::placeholder {
-                          color: #bdc3c7;
-                          opacity: 0.7;
-                      }
-  
-                      .search-filter-container input[type="text"]:focus,
-                      .search-filter-container select:focus {
-                          border-color: #e67e22;
-                          box-shadow: 0 0 10px rgba(230, 126, 34, 0.5);
-                          transform: translateY(-2px);
-                      }
-  
-                      /* Table Container with Glassmorphism */
-                      .table-container {
-                          overflow-x: auto; /* Ensure horizontal scrolling */
-                          margin: 30px auto 40px;
-                          padding: 25px;
-                          background: rgba(44, 62, 80, 0.3);
-                          backdrop-filter: blur(12px);
-                          -webkit-backdrop-filter: blur(12px);
-                          border-radius: 15px;
-                          box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.3), -5px -5px 20px rgba(255, 255, 255, 0.05);
-                          border: 1px solid rgba(255, 255, 255, 0.1);
-                          max-width: 1200px;
-                          position: relative;
-                          animation: fadeIn 1s ease-in-out;
-                      }
-  
-                      .table-container::-webkit-scrollbar {
-                          height: 10px;
-                      }
-  
-                      .table-container::-webkit-scrollbar-thumb {
-                          background: #3498db;
-                          border-radius: 5px;
-                          box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-                      }
-  
-                      .table-container::-webkit-scrollbar-track {
-                          background: rgba(52, 73, 94, 0.5);
-                          border-radius: 5px;
-                      }
-  
-                      .table-container::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: 0;
-                          width: 100%;
-                          height: 100%;
-                          background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, transparent 70%);
-                          opacity: 0.3;
-                          z-index: -1;
-                          animation: pulseGlow 5s infinite ease-in-out;
-                      }
-  
-                      table {
-                          width: 100%;
-                          border-collapse: separate;
-                          border-spacing: 0 10px;
-                          /* Removed min-width to allow dynamic sizing */
-                      }
-  
-                      th, td {
-                          padding: 15px 12px;
-                          text-align: left;
-                          font-size: 0.95em;
-                          color: #ecf0f1;
-                          background: rgba(52, 73, 94, 0.5);
-                          transition: background 0.3s ease, transform 0.3s ease;
-                          border-radius: 8px;
-                      }
-  
-                      th {
-                          background: linear-gradient(90deg, #2c3e50, #34495e);
-                          color: #e67e22;
-                          font-weight: 700;
-                          text-transform: uppercase;
-                          letter-spacing: 1px;
-                          position: sticky;
-                          top: 0;
-                          z-index: 10;
-                          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-                      }
-  
-                      tr {
-                          border-radius: 10px;
-                          /* Removed overflow: hidden to prevent clipping */
-                      }
-  
-                      tr:hover td {
-                          background: rgba(52, 152, 219, 0.15);
-                          transform: translateY(-2px);
-                      }
-  
-                      .editable:hover {
-                          background: rgba(52, 152, 219, 0.25);
-                          cursor: pointer;
-                      }
-  
-                      .editing {
-                          background: rgba(52, 152, 219, 0.3);
-                          border: 1px solid #e67e22;
-                          border-radius: 4px;
-                      }
-  
-                      select.status-dropdown {
-                          background: rgba(52, 73, 94, 0.5);
-                          color: #ecf0f1;
-                          border: 1px solid #3498db;
-                          padding: 6px;
-                          border-radius: 4px;
-                          transition: border-color 0.3s ease, box-shadow 0.3s ease;
-                      }
-  
-                      select.status-dropdown:focus {
-                          border-color: #e67e22;
-                          box-shadow: 0 0 8px rgba(230, 126, 34, 0.5);
-                      }
-  
-                      img {
-                          border-radius: 5px;
-                          cursor: pointer;
-                          width: 50px;
-                          height: 50px;
-                          object-fit: cover;
-                          border: 1px solid #3498db;
-                          transition: transform 0.3s ease, box-shadow 0.3s ease;
-                          box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-                      }
-  
-                      img:hover {
-                          transform: scale(1.1);
-                          box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
-                      }
-  
-                      /* Action Buttons with Neumorphism and Glow */
-                      .action-buttons {
-                          display: flex;
-                          gap: 10px;
-                          justify-content: center;
-                          align-items: center;
-                          position: relative;
-                          z-index: 20;
-                          min-width: 0; /* Allow buttons to shrink if needed */
-                      }
-  
-                      .action-buttons button {
-                          padding: 8px 15px;
-                          border: none;
-                          border-radius: 8px;
-                          font-size: 0.9em;
-                          font-weight: 600;
-                          cursor: pointer;
-                          transition: all 0.3s ease;
-                          text-transform: uppercase;
-                          letter-spacing: 1px;
-                          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-                          box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3), -3px -3px 8px rgba(255, 255, 255, 0.05);
-                          position: relative;
-                          overflow: hidden;
-                          z-index: 21;
-                          white-space: nowrap; /* Prevent text wrapping */
-                          min-width: 70px; /* Ensure minimum button width */
-                      }
-  
-                      .action-buttons button::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: -100%;
-                          width: 100%;
-                          height: 100%;
-                          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                          transition: left 0.5s ease;
-                      }
-  
-                      .action-buttons button:hover::before {
-                          left: 100%;
-                      }
-  
-                      .action-buttons button:nth-child(1) {
-                          background: #1e90ff;
-                          color: #ffffff;
-                      }
-  
-                      .action-buttons button:nth-child(1):hover {
-                          background: #4682b4;
-                          transform: translateY(-2px);
-                          box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
-                      }
-  
-                      .action-buttons button:nth-child(2) {
-                          background: #32cd32;
-                          color: #ffffff;
-                      }
-  
-                      .action-buttons button:nth-child(2):hover {
-                          background: #228b22;
-                          transform: translateY(-2px);
-                          box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
-                      }
-  
-                      .action-buttons button:nth-child(3) {
-                          background: #ff4500;
-                          color: #ffffff;
-                      }
-  
-                      .action-buttons button:nth-child(3):hover {
-                          background: #dc143c;
-                          transform: translateY(-2px);
-                          box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-                      }
-  
-                      /* Image Modal with Glassmorphism */
-                      .image-modal {
-                          display: none;
-                          position: fixed;
-                          top: 0;
-                          left: 0;
-                          width: 100%;
-                          height: 100%;
-                          background: rgba(30, 42, 56, 0.95);
-                          z-index: 1000;
-                          justify-content: center;
-                          align-items: center;
-                          animation: fadeIn 0.5s ease-in-out;
-                      }
-  
-                      .image-modal img {
-                          max-width: 90vw;
-                          max-height: 90vh;
-                          width: auto;
-                          height: auto;
-                          border-radius: 10px;
-                          box-shadow: 0 0 20px rgba(52, 152, 219, 0.7);
-                          background: rgba(44, 62, 80, 0.3);
-                          backdrop-filter: blur(10px);
-                          -webkit-backdrop-filter: blur(10px);
-                          padding: 10px;
-                          transition: transform 0.3s ease;
-                      }
-  
-                      .image-modal img:hover {
-                          transform: scale(1.05);
-                      }
-  
-                      .image-modal .close {
-                          position: fixed;
-                          top: 20px;
-                          right: 20px;
-                          color: #e67e22;
-                          font-size: 2.5em;
-                          cursor: pointer;
-                          transition: transform 0.3s ease, color 0.3s ease;
-                          background: rgba(44, 62, 80, 0.8);
-                          padding: 10px;
-                          border-radius: 50%;
-                          box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3), -3px -3px 8px rgba(255, 255, 255, 0.05);
-                      }
-  
-                      .image-modal .close:hover {
-                          transform: rotate(90deg) scale(1.1);
-                          color: #fff;
-                      }
-  
-                      .image-modal .close:active {
-                          transform: rotate(90deg) scale(0.9);
-                      }
-  
-                      .image-modal .close::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: -100%;
-                          width: 100%;
-                          height: 100%;
-                          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                          transition: left 0.5s ease;
-                      }
-  
-                      .image-modal .close:hover::before {
-                          left: 100%;
-                      }
-  
-                      /* Footer with Glassmorphism */
-                      footer {
-                          background: rgba(44, 62, 80, 0.3);
-                          backdrop-filter: blur(10px);
-                          -webkit-backdrop-filter: blur(10px);
-                          padding: 20px;
-                          text-align: center;
-                          margin-top: auto;
-                          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-                          border-top: 1px solid rgba(255, 255, 255, 0.1);
-                      }
-  
-                      footer p {
-                          margin: 5px 0;
-                          font-size: 1.2em;
-                          color: #3498db;
-                          text-transform: uppercase;
-                          letter-spacing: 1px;
-                          text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-                          transition: color 0.3s ease, text-shadow 0.3s ease;
-                      }
-  
-                      footer p:hover {
-                          color: #e67e22;
-                          text-shadow: 0 0 8px rgba(230, 126, 34, 0.7);
-                          transform: translateY(-2px);
-                      }
-  
-                      footer a {
-                          color: #3498db;
-                          text-decoration: none;
-                          transition: color 0.3s ease, transform 0.3s ease;
-                          display: inline-flex;
-                          align-items: center;
-                          gap: 8px;
-                          font-size: 1.1em;
-                      }
-  
-                      footer a:hover {
-                          color: #e67e22;
-                          transform: translateX(5px);
-                      }
-  
-                      footer i {
-                          font-size: 1.5em;
-                          transition: transform 0.3s ease;
-                      }
-  
-                      footer a:hover i {
-                          transform: scale(1.2);
-                      }
-  
-                      /* Back Links with Neumorphism */
-                      .back-links {
-                          display: flex;
-                          justify-content: center;
-                          gap: 20px;
-                          margin: 20px 0;
-                          flex-wrap: wrap;
-                      }
-  
-                      .back-link {
-                          display: inline-block;
-                          padding: 12px 25px;
-                          background: rgba(44, 62, 80, 0.5);
-                          color: #ecf0f1;
-                          text-decoration: none;
-                          border-radius: 8px;
-                          box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3), -3px -3px 8px rgba(255, 255, 255, 0.05);
-                          transition: all 0.3s ease;
-                          font-size: 1em;
-                          font-weight: 600;
-                          position: relative;
-                          overflow: hidden;
-                      }
-  
-                      .back-link::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: -100%;
-                          width: 100%;
-                          height: 100%;
-                          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                          transition: left 0.5s ease;
-                      }
-  
-                      .back-link:hover::before {
-                          left: 100%;
-                      }
-  
-                      .back-link:hover {
-                          background: rgba(52, 152, 219, 0.3);
-                          transform: translateY(-3px);
-                          box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
-                      }
-  
-                      /* Animations */
-                      @keyframes slideDown {
-                          from { opacity: 0; transform: translateY(-50px); }
-                          to { opacity: 1; transform: translateY(0); }
-                      }
-  
-                      @keyframes fadeIn {
-                          from { opacity: 0; }
-                          to { opacity: 1; }
-                      }
-  
-                      /* Responsive Design */
-                      @media (max-width: 768px) {
-                          header {
-                              flex-direction: column;
-                              margin: 10px;
-                              padding: 15px;
-                          }
-  
-                          header img {
-                              width: 80px;
-                          }
-  
-                          header h1 {
-                              font-size: 1.8em;
-                          }
-  
-                          .search-filter-container {
-                              flex-direction: column;
-                              gap: 10px;
-                          }
-  
-                          .search-filter-container input[type="text"],
-                          .search-filter-container select {
-                              width: 100%;
-                          }
-  
-                          .table-container {
-                              padding: 15px;
-                          }
-  
-                          th, td {
-                              padding: 10px 8px;
-                              font-size: 0.85em;
-                          }
-  
-                          .action-buttons {
-                              flex-direction: row;
-                              gap: 5px;
-                              flex-wrap: wrap;
-                          }
-  
-                          .action-buttons button {
-                              padding: 6px 10px;
-                              font-size: 0.8em;
-                              min-width: 70px;
-                          }
-  
-                          .back-links {
-                              flex-direction: column;
-                              gap: 10px;
-                          }
-  
-                          .image-modal img {
-                              max-width: 95vw;
-                              max-height: 95vh;
-                          }
-                      }
-  
-                      @media (max-width: 480px) {
-                          header img {
-                              width: 60px;
-                          }
-  
-                          header h1 {
-                              font-size: 1.5em;
-                          }
-  
-                          h2 {
-                              font-size: 1.6em;
-                          }
-  
-                          .search-filter-container {
-                              padding: 10px;
-                          }
-  
-                          .search-filter-container input[type="text"],
-                          .search-filter-container select {
-                              padding: 10px;
-                              font-size: 0.9em;
-                          }
-  
-                          .table-container {
-                              padding: 10px;
-                          }
-  
-                          th, td {
-                              padding: 8px 6px;
-                              font-size: 0.75em;
-                          }
-  
-                          .action-buttons button {
-                              padding: 5px 8px;
-                              font-size: 0.75em;
-                              min-width: 60px;
-                          }
-  
-                          .back-link {
-                              padding: 8px 15px;
-                              font-size: 0.9em;
-                          }
-                      }
-                  </style>
-              </head>
-              <body>
-                  <header>
-                      <img src="/uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo">
-                      <h1>A&A Kennels - Stored Stud Details</h1>
-                  </header>
-                  <h2>Stored Stud Details</h2>
-                  <div class="search-filter-container">
-                      <input type="text" id="search-input" placeholder="Search by Stud Name">
-                      <select id="filter-status">
-                          <option value="All">All Statuses</option>
-                          <option value="Waiting">Waiting</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Failure">Failure</option>
-                      </select>
-                  </div>
-                  <div class="table-container">
-                      <table>
-                          <tr>
-                              <th>Stud Name</th>
-                              <th>Owner Name</th>
-                              <th>Contact</th>
-                              <th>Female Dog Color</th>
-                              <th>Female Breed</th>
-                              <th>First Day of Heat</th>
-                              <th>Breeding Dates</th>
-                              <th>Female Status</th>
-                              <th>Puppy Count</th>
-                              <th>Next Heat Cycle</th>
-                              <th>Female Image</th>
-                              <th>Puppy Delivery Date</th>
-                              <th>Breeding Image</th>
-                              <th>Actions</th>
-                          </tr>`;
-  
-      results.forEach((row) => {
+        if (err) {
+            console.error("Database query error:", err);
+            return res.status(500).send("Internal Server Error");
+        }
+
+        let tableContent = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Stored Stud Details - A&A Kennels</title>
+                <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&display=swap" rel="stylesheet">
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+                <style>
+                    /* Reset and Base Styles */
+                    * {
+                        box-sizing: border-box;
+                        margin: 0;
+                        padding: 0;
+                    }
+
+                    body {
+                        background: linear-gradient(135deg, #1e2a38, #2c3e50);
+                        font-family: 'Exo 2', sans-serif;
+                        color: #ecf0f1;
+                        margin: 0;
+                        padding: 0;
+                        min-height: 100vh;
+                        display: flex;
+                        flex-direction: column;
+                        overflow-x: hidden;
+                        position: relative;
+                    }
+
+                    /* Header with Glassmorphism */
+                    header {
+                        background: rgba(44, 62, 80, 0.3);
+                        backdrop-filter: blur(12px);
+                        padding: 20px;
+                        text-align: center;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 15px;
+                        border-radius: 15px;
+                        margin: 15px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        position: relative;
+                        width: calc(100% - 30px);
+                    }
+
+                    header img {
+                        width: 80px;
+                        height: auto;
+                        border-radius: 50%;
+                        transition: transform 0.3s ease;
+                    }
+
+                    header h1 {
+                        font-size: 1.8em;
+                        margin: 0;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                    }
+
+                    h2 {
+                        font-size: 2em;
+                        color: #3498db;
+                        text-align: center;
+                        margin: 20px 15px;
+                        text-transform: uppercase;
+                    }
+
+                    /* Search and Filter Container */
+                    .search-filter-container {
+                        max-width: calc(100% - 30px);
+                        margin: 15px auto;
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 15px;
+                        justify-content: center;
+                        padding: 15px;
+                        background: rgba(44, 62, 80, 0.3);
+                        backdrop-filter: blur(10px);
+                        border-radius: 12px;
+                        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+                    }
+
+                    .search-filter-container input[type="text"],
+                    .search-filter-container select {
+                        padding: 10px;
+                        border: 1px solid #3498db;
+                        border-radius: 8px;
+                        background: rgba(52, 73, 94, 0.5);
+                        color: #ecf0f1;
+                        font-size: 0.9em;
+                        outline: none;
+                        width: 100%;
+                        max-width: 250px;
+                    }
+
+                    /* Table Container */
+                    .table-container {
+                        margin: 20px 15px;
+                        padding: 15px;
+                        background: rgba(44, 62, 80, 0.3);
+                        backdrop-filter: blur(12px);
+                        border-radius: 15px;
+                        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.3);
+                        overflow-x: auto;
+                        width: calc(100% - 30px);
+                    }
+
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        min-width: 1200px; /* Ensure table is wide enough for all columns */
+                    }
+
+                    th, td {
+                        padding: 12px 10px;
+                        text-align: left;
+                        font-size: 0.9em;
+                        color: #ecf0f1;
+                        background: rgba(52, 73, 94, 0.5);
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+
+                    th {
+                        background: linear-gradient(90deg, #2c3e50, #34495e);
+                        color: #e67e22;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        position: sticky;
+                        top: 0;
+                        z-index: 10;
+                    }
+
+                    img {
+                        border-radius: 5px;
+                        cursor: pointer;
+                        width: 40px;
+                        height: 40px;
+                        object-fit: cover;
+                        border: 1px solid #3498db;
+                    }
+
+                    /* Action Buttons */
+                    .action-buttons {
+                        display: flex;
+                        gap: 8px;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                    }
+
+                    .action-buttons button {
+                        padding: 6px 12px;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 0.8em;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+
+                    .action-buttons button:nth-child(1) { background: #1e90ff; color: #ffffff; }
+                    .action-buttons button:nth-child(2) { background: #32cd32; color: #ffffff; }
+                    .action-buttons button:nth-child(3) { background: #ff4500; color: #ffffff; }
+
+                    /* Image Modal */
+                    .image-modal {
+                        display: none;
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(30, 42, 56, 0.95);
+                        z-index: 1000;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .image-modal img {
+                        max-width: 90vw;
+                        max-height: 90vh;
+                        border-radius: 10px;
+                    }
+
+                    .image-modal .close {
+                        position: fixed;
+                        top: 15px;
+                        right: 15px;
+                        color: #e67e22;
+                        font-size: 2em;
+                        cursor: pointer;
+                    }
+
+                    /* Footer */
+                    footer {
+                        background: rgba(44, 62, 80, 0.3);
+                        backdrop-filter: blur(10px);
+                        padding: 15px;
+                        text-align: center;
+                        margin-top: auto;
+                    }
+
+                    footer p {
+                        margin: 5px 0;
+                        font-size: 1em;
+                        color: #3498db;
+                    }
+
+                    footer a {
+                        color: #3498db;
+                        text-decoration: none;
+                    }
+
+                    /* Back Links */
+                    .back-links {
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        gap: 15px;
+                        margin: 20px 15px;
+                    }
+
+                    .back-link {
+                        padding: 10px 20px;
+                        background: rgba(44, 62, 80, 0.5);
+                        color: #ecf0f1;
+                        text-decoration: none;
+                        border-radius: 8px;
+                        font-size: 0.9em;
+                    }
+
+                    /* Mobile Responsive Styles */
+                    @media (max-width: 768px) {
+                        body {
+                            overflow-x: hidden;
+                        }
+
+                        header {
+                            flex-direction: column;
+                            margin: 10px;
+                            width: calc(100% - 20px);
+                        }
+
+                        header img {
+                            width: 60px;
+                        }
+
+                        header h1 {
+                            font-size: 1.5em;
+                        }
+
+                        .search-filter-container {
+                            flex-direction: column;
+                            margin: 10px;
+                            width: calc(100% - 20px);
+                        }
+
+                        .table-container {
+                            margin: 10px;
+                            padding: 10px;
+                            width: calc(100% - 20px);
+                            overflow-x: auto;
+                            -webkit-overflow-scrolling: touch;
+                        }
+
+                        table {
+                            min-width: 1000px;
+                        }
+
+                        th, td {
+                            padding: 8px 6px;
+                            font-size: 0.8em;
+                        }
+
+                        .action-buttons {
+                            gap: 5px;
+                        }
+
+                        .action-buttons button {
+                            padding: 5px 8px;
+                            font-size: 0.7em;
+                        }
+
+                        img {
+                            width: 30px;
+                            height: 30px;
+                        }
+                    }
+
+                    @media (max-width: 480px) {
+                        header img {
+                            width: 50px;
+                        }
+
+                        header h1 {
+                            font-size: 1.2em;
+                        }
+
+                        h2 {
+                            font-size: 1.5em;
+                            margin: 15px 10px;
+                        }
+
+                        .search-filter-container {
+                            padding: 10px;
+                        }
+
+                        .table-container {
+                            padding: 8px;
+                        }
+
+                        th, td {
+                            padding: 6px 4px;
+                            font-size: 0.7em;
+                        }
+
+                        .action-buttons button {
+                            padding: 4px 6px;
+                            font-size: 0.65em;
+                        }
+
+                        .back-link {
+                            padding: 8px 15px;
+                            font-size: 0.8em;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <header>
+                    <img src="/uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo">
+                    <h1>A&A Kennels - Stored Stud Details</h1>
+                </header>
+                <h2>Stored Stud Details</h2>
+                <div class="search-filter-container">
+                    <input type="text" id="search-input" placeholder="Search by Stud Name">
+                    <select id="filter-status">
+                        <option value="All">All Statuses</option>
+                        <option value="Waiting">Waiting</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Failure">Failure</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Stud Name</th>
+                            <th>Owner Name</th>
+                            <th>Contact</th>
+                            <th>Female Dog Color</th>
+                            <th>Female Breed</th>
+                            <th>First Day of Heat</th>
+                            <th>Breeding Dates</th>
+                            <th>Female Status</th>
+                            <th>Puppy Count</th>
+                            <th>Next Heat Cycle</th>
+                            <th>Female Image</th>
+                            <th>Puppy Delivery Date</th>
+                            <th>Breeding Image</th>
+                            <th>Actions</th>
+                        </tr>`;
+
+        results.forEach((row) => {
+            tableContent += `
+                        <tr id="row-${row.id}">
+                            <td class="editable">${row.name || ""}</td>
+                            <td class="editable">${row.owner_name || ""}</td>
+                            <td class="editable">${row.owner_contact || ""}</td>
+                            <td class="editable">${row.female_dog_color || ""}</td>
+                            <td class="editable">${row.female_breed || ""}</td>
+                            <td class="editable" data-type="date">${row.female_first_day_of_heat || ""}</td>
+                            <td class="editable">${row.breeding_dates || "No breeding dates yet"}</td>
+                            <td class="editable">${row.female_status || "Waiting"}</td>
+                            <td class="editable">${row.female_status === "Delivered" ? (row.female_puppy_count || "0") : "N/A"}</td>
+                            <td>${row.next_heat_cycle || "N/A"}</td>
+                            <td>${row.female_dog_image ? `<img src="${row.female_dog_image}" onclick="showImage('${row.female_dog_image}')">` : "No Image"}</td>
+                            <td>${row.puppy_delivery_date || "N/A"}</td>
+                            <td>${row.breeding_image ? `<img src="${row.breeding_image}" onclick="showImage('${row.breeding_image}')">` : "No Image"}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="edit-btn" data-id="${row.id}">Edit</button>
+                                    <button class="save-btn" data-id="${row.id}">Save</button>
+                                    <button class="delete-btn" data-id="${row.id}">Delete</button>
+                                </div>
+                            </td>
+                        </tr>`;
+        });
+
         tableContent += `
-                      <tr id="row-${row.id}">
-                          <td class="editable">${row.name || ""}</td>
-                          <td class="editable">${row.owner_name || ""}</td>
-                          <td class="editable">${row.owner_contact || ""}</td>
-                          <td class="editable">${row.female_dog_color || ""}</td>
-                          <td class="editable">${row.female_breed || ""}</td>
-                          <td class="editable" data-type="date">${row.female_first_day_of_heat || ""}</td>
-                          <td class="editable">${row.breeding_dates || "No breeding dates yet"}</td>
-                          <td class="editable">${row.female_status || "Waiting"}</td>
-                          <td class="editable">${row.female_status === "Delivered" ? (row.female_puppy_count || "0") : "N/A"}</td>
-                          <td>${row.next_heat_cycle || "N/A"}</td>
-                          <td>${row.female_dog_image ? `<img src="${row.female_dog_image}" onclick="showImage('${row.female_dog_image}')">` : "No Image"}</td>
-                          <td>${row.puppy_delivery_date || "N/A"}</td>
-                          <td>${row.breeding_image ? `<img src="${row.breeding_image}" onclick="showImage('${row.breeding_image}')">` : "No Image"}</td>
-                          <td>
-                              <div class="action-buttons">
-                                  <button class="edit-btn" data-id="${row.id}">Edit</button>
-                                  <button class="save-btn" data-id="${row.id}">Save</button>
-                                  <button class="delete-btn" data-id="${row.id}">Delete</button>
-                              </div>
-                          </td>
-                      </tr>`;
-      });
-  
-      tableContent += `
-                      </table>
-                  </div>
-                  <div class="back-links">
-                      <a href="/admin-dashboard" class="back-link">Admin Dashboard</a>
-                      <a href="/" class="back-link">View Male Studs</a>
-                      <a href="/logout" class="back-link">Logout</a>
-                  </div>
-                  <footer>
-                      <p>Contact Us:</p>
-                      <p>
-                          <a href="https://wa.me/917338040633" target="_blank">
-                              <i class="fab fa-whatsapp"></i> 7338040633
-                          </a>
-                      </p>
-                      <p>
-                          <a href="https://www.facebook.com/share/1HdVyCqHuM/" target="_blank">
-                              <i class="fab fa-facebook-f"></i> A&A Kennels
-                          </a>
-                      </p>
-                  </footer>
-                  <script>
-                      document.addEventListener('DOMContentLoaded', () => {
-                          const searchInput = document.getElementById('search-input');
-                          const filterSelect = document.getElementById('filter-status');
-                          const tableRows = document.querySelectorAll('table tr:not(:first-child)');
-  
-                          function filterTable() {
-                              const searchText = searchInput.value.toLowerCase();
-                              const filterValue = filterSelect.value;
-  
-                              tableRows.forEach(row => {
-                                  const studName = row.cells[0].textContent.toLowerCase();
-                                  const femaleStatus = row.cells[7].textContent;
-  
-                                  const matchesSearch = studName.includes(searchText);
-                                  const matchesFilter = filterValue === 'All' || femaleStatus === filterValue;
-  
-                                  row.style.display = matchesSearch && matchesFilter ? '' : 'none';
-                              });
-                          }
-  
-                          searchInput.addEventListener('input', filterTable);
-                          filterSelect.addEventListener('change', filterTable);
-  
-                          window.showImage = function(src) {
-                              console.log('Showing image:', src);
-                              const modal = document.createElement('div');
-                              modal.classList.add('image-modal');
-                              modal.innerHTML = \`
-                                  <span class="close">×</span>
-                                  <img src="\${src}" alt="Enlarged Image">
-                              \`;
-                              document.body.appendChild(modal);
-                              modal.style.display = 'flex';
-                              modal.querySelector('.close').onclick = () => modal.remove();
-                              modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-                          };
-  
-                          window.deleteStud = function(id, row) {
-                              console.log('Deleting stud with ID:', id);
-                              if (confirm("Are you sure you want to delete this stud entry?")) {
-                                  fetch('/delete/' + id, { method: 'DELETE' })
-                                      .then(response => response.json())
-                                      .then(data => {
-                                          if (data.success) {
-                                              console.log('Stud deleted successfully');
-                                              row.remove();
-                                          } else {
-                                              alert("Failed to delete entry: " + (data.error || "Unknown error"));
-                                          }
-                                      })
-                                      .catch(error => {
-                                          console.error('Delete error:', error);
-                                          alert('Error deleting stud: ' + error.message);
-                                      });
-                              }
-                          };
-  
-                          window.makeEditable = function(cells) {
-                              console.log('Making cells editable:', cells);
-                              const statusCell = cells[7];
-                              const puppyCountCell = cells[8];
-  
-                              cells.forEach(cell => {
-                                  if (cell !== statusCell && cell !== puppyCountCell && !cell.isContentEditable) {
-                                      cell.contentEditable = true;
-                                      cell.classList.add('editing');
-                                      if (cell.dataset.type === 'date' && cell.textContent.trim() !== '' && cell.textContent !== 'N/A') {
-                                          flatpickr(cell, { 
-                                              dateFormat: "Y-m-d", 
-                                              allowInput: true,
-                                              onReady: function(selectedDates, dateStr, instance) {
-                                                  if (instance && instance.calendarContainer) {
-                                                      instance.calendarContainer.style.setProperty('font-size', '0.9em');
-                                                  }
-                                              }
-                                          });
-                                      }
-                                  }
-                              });
-  
-                              if (!statusCell.querySelector('select')) {
-                                  const currentStatus = statusCell.textContent.trim();
-                                  const select = document.createElement('select');
-                                  select.className = 'status-dropdown';
-                                  select.innerHTML = \`
-                                      <option value="Waiting" \${currentStatus === 'Waiting' ? 'selected' : ''}>Waiting</option>
-                                      <option value="Delivered" \${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                                      <option value="Failure" \${currentStatus === 'Failure' ? 'selected' : ''}>Failure</option>
-                                  \`;
-                                  statusCell.innerHTML = '';
-                                  statusCell.appendChild(select);
-  
-                                  select.onchange = () => {
-                                      if (select.value === 'Delivered') {
-                                          puppyCountCell.contentEditable = true;
-                                          puppyCountCell.classList.add('editing');
-                                          if (puppyCountCell.textContent === 'N/A') puppyCountCell.textContent = '0';
-                                      } else {
-                                          puppyCountCell.contentEditable = false;
-                                          puppyCountCell.classList.remove('editing');
-                                          puppyCountCell.textContent = 'N/A';
-                                      }
-                                  };
-                              }
-                          };
-  
-                          window.saveEdit = function(id, row) {
-                              console.log('Saving stud with ID:', id);
-                              const cells = row.querySelectorAll('td.editable');
-                              const statusCell = cells[7];
-                              const puppyCountCell = cells[8];
-  
-                              if (!statusCell || !puppyCountCell) {
-                                  alert('Error: Could not save due to missing data');
-                                  return;
-                              }
-  
-                              const statusSelect = statusCell.querySelector('select');
-                              const statusValue = statusSelect ? statusSelect.value : statusCell.textContent.trim();
-  
-                              const data = {
-                                  id: id,
-                                  name: cells[0]?.textContent || '',
-                                  owner_name: cells[1]?.textContent || '',
-                                  owner_contact: cells[2]?.textContent || '',
-                                  female_dog_color: cells[3]?.textContent || '',
-                                  female_breed: cells[4]?.textContent || '',
-                                  female_first_day_of_heat: cells[5]?.textContent || '',
-                                  breeding_dates: cells[6]?.textContent === 'No breeding dates yet' ? [] : (cells[6]?.textContent.split(', ') || []),
-                                  female_status: statusValue,
-                                  female_puppy_count: statusValue === 'Delivered' ? 
-                                      (puppyCountCell.textContent === 'N/A' ? null : puppyCountCell.textContent) : null
-                              };
-  
-                              fetch('/update/' + id, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify(data)
-                              })
-                              .then(response => response.json())
-                              .then(result => {
-                                  if (result.success) {
-                                      console.log('Stud updated successfully');
-                                      cells.forEach(cell => {
-                                          if (cell !== statusCell && cell !== puppyCountCell) {
-                                              cell.contentEditable = false;
-                                              cell.classList.remove('editing');
-                                          }
-                                      });
-                                      if (statusSelect) statusCell.innerHTML = statusValue;
-                                      if (statusValue !== 'Delivered') {
-                                          puppyCountCell.textContent = 'N/A';
-                                          puppyCountCell.contentEditable = false;
-                                          puppyCountCell.classList.remove('editing');
-                                      }
-                                  } else {
-                                      alert('Failed to update entry: ' + (result.error || 'Unknown error'));
-                                      location.reload();
-                                  }
-                              })
-                              .catch(error => {
-                                  console.error('Save error:', error);
-                                  alert('Error saving changes: ' + error.message);
-                                  location.reload();
-                              });
-                          };
-  
-                          // Attach event listeners to buttons
-                          document.querySelectorAll('.edit-btn').forEach(button => {
-                              button.addEventListener('click', () => {
-                                  const id = button.getAttribute('data-id');
-                                  const row = document.getElementById('row-' + id);
-                                  console.log('Edit button clicked for ID:', id);
-                                  makeEditable(row.querySelectorAll('.editable'));
-                              });
-                          });
-  
-                          document.querySelectorAll('.save-btn').forEach(button => {
-                              button.addEventListener('click', () => {
-                                  const id = button.getAttribute('data-id');
-                                  const row = document.getElementById('row-' + id);
-                                  console.log('Save button clicked for ID:', id);
-                                  saveEdit(id, row);
-                              });
-                          });
-  
-                          document.querySelectorAll('.delete-btn').forEach(button => {
-                              button.addEventListener('click', () => {
-                                  const id = button.getAttribute('data-id');
-                                  const row = document.getElementById('row-' + id);
-                                  console.log('Delete button clicked for ID:', id);
-                                  deleteStud(id, row);
-                              });
-                          });
-                      });
-                  </script>
-              </body>
-              </html>`;
-  
-      res.send(tableContent);
+                    </table>
+                </div>
+                <div class="back-links">
+                    <a href="/admin-dashboard" class="back-link">Admin Dashboard</a>
+                    <a href="/" class="back-link">View Male Studs</a>
+                    <a href="/logout" class="back-link">Logout</a>
+                </div>
+                <footer>
+                    <p>Contact Us:</p>
+                    <p>
+                        <a href="https://wa.me/917338040633" target="_blank">
+                            <i class="fab fa-whatsapp"></i> 7338040633
+                        </a>
+                    </p>
+                    <p>
+                        <a href="https://www.facebook.com/share/1HdVyCqHuM/" target="_blank">
+                            <i class="fab fa-facebook-f"></i> A&A Kennels
+                        </a>
+                    </p>
+                </footer>
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const searchInput = document.getElementById('search-input');
+                        const filterSelect = document.getElementById('filter-status');
+                        const tableRows = document.querySelectorAll('table tr:not(:first-child)');
+
+                        function filterTable() {
+                            const searchText = searchInput.value.toLowerCase();
+                            const filterValue = filterSelect.value;
+
+                            tableRows.forEach(row => {
+                                const studName = row.cells[0].textContent.toLowerCase();
+                                const femaleStatus = row.cells[7].textContent;
+
+                                const matchesSearch = studName.includes(searchText);
+                                const matchesFilter = filterValue === 'All' || femaleStatus === filterValue;
+
+                                row.style.display = matchesSearch && matchesFilter ? '' : 'none';
+                            });
+                        }
+
+                        searchInput.addEventListener('input', filterTable);
+                        filterSelect.addEventListener('change', filterTable);
+
+                        window.showImage = function(src) {
+                            const modal = document.createElement('div');
+                            modal.classList.add('image-modal');
+                            modal.innerHTML = \`
+                                <span class="close">×</span>
+                                <img src="\${src}" alt="Enlarged Image">
+                            \`;
+                            document.body.appendChild(modal);
+                            modal.style.display = 'flex';
+                            modal.querySelector('.close').onclick = () => modal.remove();
+                            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                        };
+
+                        window.deleteStud = function(id, row) {
+                            if (confirm("Are you sure you want to delete this stud entry?")) {
+                                fetch('/delete/' + id, { method: 'DELETE' })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            row.remove();
+                                        } else {
+                                            alert("Failed to delete entry: " + (data.error || "Unknown error"));
+                                        }
+                                    })
+                                    .catch(error => {
+                                        alert('Error deleting stud: ' + error.message);
+                                    });
+                            }
+                        };
+
+                        window.makeEditable = function(cells) {
+                            const statusCell = cells[7];
+                            const puppyCountCell = cells[8];
+
+                            cells.forEach(cell => {
+                                if (cell !== statusCell && cell !== puppyCountCell && !cell.isContentEditable) {
+                                    cell.contentEditable = true;
+                                    cell.classList.add('editing');
+                                    if (cell.dataset.type === 'date' && cell.textContent.trim() !== '' && cell.textContent !== 'N/A') {
+                                        flatpickr(cell, { 
+                                            dateFormat: "Y-m-d", 
+                                            allowInput: true,
+                                            onReady: function(selectedDates, dateStr, instance) {
+                                                if (instance && instance.calendarContainer) {
+                                                    instance.calendarContainer.style.setProperty('font-size', '0.9em');
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+
+                            if (!statusCell.querySelector('select')) {
+                                const currentStatus = statusCell.textContent.trim();
+                                const select = document.createElement('select');
+                                select.className = 'status-dropdown';
+                                select.innerHTML = \`
+                                    <option value="Waiting" \${currentStatus === 'Waiting' ? 'selected' : ''}>Waiting</option>
+                                    <option value="Delivered" \${currentStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                    <option value="Failure" \${currentStatus === 'Failure' ? 'selected' : ''}>Failure</option>
+                                \`;
+                                statusCell.innerHTML = '';
+                                statusCell.appendChild(select);
+
+                                select.onchange = () => {
+                                    if (select.value === 'Delivered') {
+                                        puppyCountCell.contentEditable = true;
+                                        puppyCountCell.classList.add('editing');
+                                        if (puppyCountCell.textContent === 'N/A') puppyCountCell.textContent = '0';
+                                    } else {
+                                        puppyCountCell.contentEditable = false;
+                                        puppyCountCell.classList.remove('editing');
+                                        puppyCountCell.textContent = 'N/A';
+                                    }
+                                };
+                            }
+                        };
+
+                        window.saveEdit = function(id, row) {
+                            const cells = row.querySelectorAll('td.editable');
+                            const statusCell = cells[7];
+                            const puppyCountCell = cells[8];
+
+                            if (!statusCell || !puppyCountCell) {
+                                alert('Error: Could not save due to missing data');
+                                return;
+                            }
+
+                            const statusSelect = statusCell.querySelector('select');
+                            const statusValue = statusSelect ? statusSelect.value : statusCell.textContent.trim();
+
+                            const data = {
+                                id: id,
+                                name: cells[0]?.textContent || '',
+                                owner_name: cells[1]?.textContent || '',
+                                owner_contact: cells[2]?.textContent || '',
+                                female_dog_color: cells[3]?.textContent || '',
+                                female_breed: cells[4]?.textContent || '',
+                                female_first_day_of_heat: cells[5]?.textContent || '',
+                                breeding_dates: cells[6]?.textContent === 'No breeding dates yet' ? [] : (cells[6]?.textContent.split(', ') || []),
+                                female_status: statusValue,
+                                female_puppy_count: statusValue === 'Delivered' ? 
+                                    (puppyCountCell.textContent === 'N/A' ? null : puppyCountCell.textContent) : null
+                            };
+
+                            fetch('/update/' + id, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            })
+                            .then(response => response.json())
+                            .then(result => {
+                                if (result.success) {
+                                    cells.forEach(cell => {
+                                        if (cell !== statusCell && cell !== puppyCountCell) {
+                                            cell.contentEditable = false;
+                                            cell.classList.remove('editing');
+                                        }
+                                    });
+                                    if (statusSelect) statusCell.innerHTML = statusValue;
+                                    if (statusValue !== 'Delivered') {
+                                        puppyCountCell.textContent = 'N/A';
+                                        puppyCountCell.contentEditable = false;
+                                        puppyCountCell.classList.remove('editing');
+                                    }
+                                } else {
+                                    alert('Failed to update entry: ' + (result.error || 'Unknown error'));
+                                    location.reload();
+                                }
+                            })
+                            .catch(error => {
+                                alert('Error saving changes: ' + error.message);
+                                location.reload();
+                            });
+                        };
+
+                        document.querySelectorAll('.edit-btn').forEach(button => {
+                            button.addEventListener('click', () => {
+                                const id = button.getAttribute('data-id');
+                                const row = document.getElementById('row-' + id);
+                                makeEditable(row.querySelectorAll('.editable'));
+                            });
+                        });
+
+                        document.querySelectorAll('.save-btn').forEach(button => {
+                            button.addEventListener('click', () => {
+                                const id = button.getAttribute('data-id');
+                                const row = document.getElementById('row-' + id);
+                                saveEdit(id, row);
+                            });
+                        });
+
+                        document.querySelectorAll('.delete-btn').forEach(button => {
+                            button.addEventListener('click', () => {
+                                const id = button.getAttribute('data-id');
+                                const row = document.getElementById('row-' + id);
+                                deleteStud(id, row);
+                            });
+                        });
+                    });
+                </script>
+            </body>
+            </html>`;
+
+        res.send(tableContent);
     });
-  });
-  
+});
   // Update Stud Details
   app.put("/update/:id", isAdmin, (req, res) => {
     const studId = req.params.id;
