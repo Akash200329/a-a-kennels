@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A&A Kennels - Add Puppy Details | Jayanagar, Mysore</title>
+    <meta name="description" content="Add puppy details at A&A Kennels in Jayanagar, Mysore. Register new puppies for sale with images and videos. Contact us at 7338040633 for assistance.">
+    <meta name="keywords" content="A&A Kennels, add puppy, puppy registration, dog breeding, Jayanagar Mysore, puppy sale">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://a-and-a-kennels.onrender.com/add-puppy">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&family=Orbitron:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Structured Data for WebPage -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "url": "https://a-and-a-kennels.onrender.com/add-puppy",
+            "name": "A&A Kennels - Add Puppy Details",
+            "description": "Add puppy details at A&A Kennels in Jayanagar, Mysore. Register new puppies for sale with images and videos.",
+            "publisher": {
+                "@type": "Organization",
+                "name": "A&A Kennels",
+                "url": "https://a-and-a-kennels.onrender.com"
+            },
+            "potentialAction": {
+                "@type": "RegisterAction",
+                "target": "https://a-and-a-kennels.onrender.com/add-puppy",
+                "name": "Add Puppy"
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e2a38);
+            font-family: 'Montserrat', sans-serif;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="10" cy="10" r="2" fill="rgba(52, 152, 219, 0.3)" opacity="0.6"><animate attributeName="cx" from="10" to="100%" dur="8s" repeatCount="indefinite" /><animate attributeName="cy" from="10" to="100%" dur="12s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="4" dur="4s" repeatCount="indefinite" /></circle><circle cx="50%" cy="50%" r="2" fill="rgba(230, 126, 34, 0.3)" opacity="0.6"><animate attributeName="cx" from="50%" to="0" dur="10s" repeatCount="indefinite" /><animate attributeName="cy" from="50%" to="100%" dur="6s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="5" dur="5s" repeatCount="indefinite" /></circle><circle cx="20%" cy="80%" r="2" fill="rgba(52, 152, 219, 0.3)" opacity="0.6"><animate attributeName="cx" from="20%" to="80%" dur="14s" repeatCount="indefinite" /><animate attributeName="cy" from="80%" to="20%" dur="9s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="3" dur="3s" repeatCount="indefinite" /></circle></svg>');
+            z-index: -1;
+            pointer-events: none;
+            animation: subtleMove 20s infinite linear;
+        }
+
+        @keyframes subtleMove {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(20px, -20px) scale(1.05); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        header {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            margin: 20px auto;
+            max-width: 900px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            animation: slideDown 1.2s ease-out;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #f97316, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(249, 115, 22, 0.8);
+        }
+
+        .form-container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 30px;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .form-container h2 {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1.8em;
+            color: #3b82f6;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1.1em;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input[type="file"] {
+            padding: 10px;
+            background: none;
+            border: none;
+        }
+
+        .form-group input[type="file"]::-webkit-file-upload-button {
+            background: #3b82f6;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input[type="file"]::-webkit-file-upload-button:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.6);
+        }
+
+        button.submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #f97316;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button.submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        button.submit-btn:hover::before {
+            left: 100%;
+        }
+
+        button.submit-btn:hover {
+            background: #ea580c;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.7);
+        }
+
+        .links {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .links a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            color: #e2e8f0;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .links a:hover {
+            background: #3b82f6;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.5);
+        }
+
+        footer {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 25px;
+            text-align: center;
+            margin-top: auto;
+            box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        footer .contact-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px 0;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #f97316;
+            transform: translateX(5px);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .form-group input, .form-group textarea, .form-group select {
+                font-size: 0.95em;
+                padding: 10px;
+            }
+
+            button.submit-btn {
+                font-size: 1em;
+                padding: 12px;
+            }
+
+            footer .contact-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.6em;
+            }
+
+            .form-container h2 {
+                font-size: 1.5em;
+            }
+
+            .form-group label {
+                font-size: 1em;
+            }
+
+            .form-group input, .form-group textarea, .form-group select {
+                font-size: 0.9em;
+            }
+
+            button.submit-btn {
+                font-size: 0.9em;
+            }
+
+            .links a {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>A&A Kennels - Add Puppy Details</h1>
+    </header>
+    <div class="form-container">
+        <h2>Add Puppy Details</h2>
+        <form action="/add-puppy" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Puppy Name:</label>
+                <input type="text" id="name" name="name" placeholder="Enter puppy name" required>
+            </div>
+            <div class="form-group">
+                <label for="sex">Sex:</label>
+                <select id="sex" name="sex" required>
+                    <option value="">Select Sex</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" placeholder="Enter puppy description" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="video_link">Video Link:</label>
+                <input type="url" id="video_link" name="video_link" placeholder="Enter video URL (optional)">
+            </div>
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="text" id="price" name="price" placeholder="Enter price or 'Contact for Price'" required>
+            </div>
+            <div class="form-group">
+                <label for="puppy_image">Puppy Image:</label>
+                <input type="file" id="puppy_image" name="puppy_image" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="mother_name">Mother Name:</label>
+                <input type="text" id="mother_name" name="mother_name" placeholder="Enter mother's name" required>
+            </div>
+            <div class="form-group">
+                <label for="father_name">Father Name:</label>
+                <input type="text" id="father_name" name="father_name" placeholder="Enter father's name" required>
+            </div>
+            <div class="form-group">
+                <label for="parent_banner">Parent Banner Image:</label>
+                <input type="file" id="parent_banner" name="parent_banner" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="mother_image">Mother Image:</label>
+                <input type="file" id="mother_image" name="mother_image" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="father_image">Father Image:</label>
+                <input type="file" id="father_image" name="father_image" accept="image/*" required>
+            </div>
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+    </div>
+    <div class="links">
+        <a href="/admin-dashboard">Admin Dashboard</a>
+        <a href="/studs">View Stud Details</a>
+        <a href="/logout">Logout</a>
+    </div>
+    <footer>
+        <p>Contact Us:</p>
+        <div class="contact-section">
+            <p><a href="https://wa.me/917338040633" target="_blank"><i class="fab fa-whatsapp"></i> 7338040633</a></p>
+            <p><a href="https://www.facebook.com/share/1HdVyCqHuM/" target="_blank"><i class="fab fa-facebook-f"></i> A&A Kennels</a></p>
+        </div>
+    </footer>
+</body>
+</html>

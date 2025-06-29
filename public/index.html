@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - A&A Kennels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e2a38, #2c3e50);
+            font-family: 'Exo 2', sans-serif;
+            color: #ecf0f1;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Particle Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="10" cy="10" r="2" fill="rgba(52, 152, 219, 0.4)" opacity="0.6"><animate attributeName="cx" from="10" to="100%" dur="8s" repeatCount="indefinite" /><animate attributeName="cy" from="10" to="100%" dur="12s" repeatCount="indefinite" /></circle><circle cx="50%" cy="50%" r="2" fill="rgba(230, 126, 34, 0.4)" opacity="0.6"><animate attributeName="cx" from="50%" to="0" dur="10s" repeatCount="indefinite" /><animate attributeName="cy" from="50%" to="100%" dur="6s" repeatCount="indefinite" /></circle><circle cx="20%" cy="80%" r="2" fill="rgba(52, 152, 219, 0.4)" opacity="0.6"><animate attributeName="cx" from="20%" to="80%" dur="14s" repeatCount="indefinite" /><animate attributeName="cy" from="80%" to="20%" dur="9s" repeatCount="indefinite" /></circle></svg>');
+            z-index: -1;
+            pointer-events: none;
+            animation: subtleMove 25s infinite linear;
+        }
+
+        @keyframes subtleMove {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(15px, -15px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* Header with Glassmorphism and Glow */
+        header {
+            background: rgba(44, 62, 80, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-radius: 15px;
+            margin: 20px auto;
+            max-width: 1200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideDown 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.2) 0%, transparent 70%);
+            animation: rotateGlow 12s infinite linear;
+        }
+
+        @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        header img {
+            width: 100px;
+            height: auto;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.7), 0 0 25px rgba(52, 152, 219, 0.5);
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        header img:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #e67e22, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(230, 126, 34, 0.8), 0 0 25px rgba(52, 152, 219, 0.5);
+            transition: transform 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        header h1:hover {
+            transform: translateY(-5px);
+            text-shadow: 0 0 20px rgba(230, 126, 34, 1), 0 0 30px rgba(52, 152, 219, 0.8);
+        }
+
+        /* Dashboard Container with Glassmorphism */
+        .dashboard-container {
+            max-width: 1300px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(44, 62, 80, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, transparent 70%);
+            opacity: 0.3;
+            z-index: -1;
+            animation: pulseGlow 5s infinite ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .dashboard-container:hover {
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-header h2 {
+            font-size: 2.5em;
+            color: #3498db;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+            position: relative;
+            animation: glowText 3s infinite ease-in-out;
+        }
+
+        .dashboard-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #3498db, #e67e22);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        @keyframes glowText {
+            0%, 100% { text-shadow: 0 0 10px rgba(52, 152, 219, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(230, 126, 34, 0.8); }
+        }
+
+        .dashboard-header h2:hover {
+            color: #e67e22;
+            text-shadow: 0 0 15px rgba(230, 126, 34, 1);
+        }
+
+        .dashboard-header p {
+            font-size: 1.2em;
+            color: #bdc3c7;
+            opacity: 0.8;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            position: relative;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), inset 0 0 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-header p:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 10px;
+        }
+
+        /* Dashboard Card with Neumorphism and Glow */
+        .dashboard-card {
+            background: rgba(44, 62, 80, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #ecf0f1;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4), -5px -5px 15px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: cardFadeIn 0.5s ease-out forwards;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.2) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .dashboard-card:hover::before {
+            opacity: 1;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px) rotate(1deg);
+            box-shadow: 5px 5px 20px rgba(52, 152, 219, 0.5), -5px -5px 20px rgba(230, 126, 34, 0.2);
+            background: rgba(44, 62, 80, 0.7);
+        }
+
+        .card-icon {
+            font-size: 2.5em;
+            color: #3498db;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .dashboard-card:hover .card-icon {
+            color: #e67e22;
+            transform: scale(1.2) rotate(5deg);
+            text-shadow: 0 0 15px rgba(230, 126, 34, 0.7);
+        }
+
+        .dashboard-card h3 {
+            font-size: 1.5em;
+            color: #e67e22;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(230, 126, 34, 0.5);
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover h3 {
+            color: #3498db;
+            text-shadow: 0 0 8px rgba(52, 152, 219, 0.7);
+        }
+
+        .dashboard-card p {
+            font-size: 1em;
+            color: #bdc3c7;
+            opacity: 0.8;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .dashboard-card:hover p {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        /* Logout Card Styling */
+        .logout-card .card-icon {
+            color: #e74c3c;
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        .logout-card:hover .card-icon {
+            color: #c0392b;
+            text-shadow: 0 0 15px rgba(192, 57, 43, 0.7);
+        }
+
+        .logout-card h3 {
+            color: #e74c3c;
+            text-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+        }
+
+        .logout-card:hover h3 {
+            color: #c0392b;
+            text-shadow: 0 0 8px rgba(192, 57, 43, 0.7);
+        }
+
+        /* Footer with Glassmorphism */
+        footer {
+            background: rgba(44, 62, 80, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+            font-size: 1.2em;
+            color: #3498db;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            position: relative;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), inset 0 0 5px rgba(255, 255, 255, 0.1);
+        }
+
+        footer p:hover {
+            color: #e67e22;
+            text-shadow: 0 0 8px rgba(230, 126, 34, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        footer .contact-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px 0;
+        }
+
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s ease, transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1em;
+            background: none;
+            box-shadow: none;
+        }
+
+        footer a:hover {
+            color: #e67e22;
+            transform: translateX(5px);
+        }
+
+        footer i {
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+        }
+
+        footer a:hover i {
+            transform: scale(1.2);
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            header {
+                flex-direction: column;
+                margin: 10px;
+                padding: 15px;
+            }
+
+            header img {
+                width: 80px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .dashboard-container {
+                padding: 20px;
+                margin: 30px auto;
+            }
+
+            .dashboard-header h2 {
+                font-size: 2em;
+            }
+
+            .dashboard-header p {
+                font-size: 1em;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-card h3 {
+                font-size: 1.3em;
+            }
+
+            .dashboard-card p {
+                font-size: 0.9em;
+            }
+
+            .card-icon {
+                font-size: 2em;
+            }
+
+            footer p {
+                font-size: 1em;
+            }
+
+            footer .contact-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header img {
+                width: 60px;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .dashboard-container {
+                padding: 15px;
+                margin: 20px auto;
+            }
+
+            .dashboard-header h2 {
+                font-size: 1.6em;
+            }
+
+            .dashboard-header p {
+                font-size: 0.9em;
+            }
+
+            .dashboard-card h3 {
+                font-size: 1.1em;
+            }
+
+            .dashboard-card p {
+                font-size: 0.8em;
+            }
+
+            .card-icon {
+                font-size: 1.8em;
+            }
+
+            footer p {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="/Uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo">
+        <h1>A&A Kennels - Admin Dashboard</h1>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2>Admin Dashboard</h2>
+            <p><span>Welcome to the A&A Kennels Admin Portal</span></p>
+        </div>
+
+        <div class="dashboard-grid">
+            <a href="/add-breeding-details" class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-paw"></i>
+                </div>
+                <h3>Add Breeding Details</h3>
+                <p>Record new breeding information for studs.</p>
+            </a>
+
+            <a href="/studs" class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <h3>View Stored Stud Details</h3>
+                <p>Access and manage stored stud records.</p>
+            </a>
+
+            <a href="/add-male-stud" class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-dog"></i>
+                </div>
+                <h3>Add Male Stud</h3>
+                <p>Add a new male stud to the database.</p>
+            </a>
+
+            <a href="/" class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h3>View Male Studs</h3>
+                <p>View all available male studs.</p>
+            </a>
+
+            <a href="/analysis" class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3>View Analysis</h3>
+                <p>Analyze breeding performance and trends.</p>
+            </a>
+
+            <a href="/add-puppy" class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-baby"></i>
+                </div>
+                <h3>Add Puppy Details</h3>
+                <p>Add new puppy information to the database.</p>
+            </a>
+
+            <a href="/manage-puppies" class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-paw"></i>
+                </div>
+                <h3>Manage Puppies</h3>
+                <p>Edit or delete existing puppy records.</p>
+            </a>
+
+            <a href="/logout" class="dashboard-card logout-card">
+                <div class="card-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <h3>Logout</h3>
+                <p>Securely log out of the admin portal.</p>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p><strong>Contact Us:</strong></p>
+        <div class="contact-section">
+            <p>
+                <a href="https://wa.me/917338040633" target="_blank">
+                    <i class="fab fa-whatsapp"></i> 7338040633
+                </a>
+            </p>
+            <p>
+                <a href="https://www.facebook.com/share/1HdVyCqHuM/" target="_blank">
+                    <i class="fab fa-facebook-f"></i> A&A Kennels
+                </a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

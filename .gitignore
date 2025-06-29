@@ -1,0 +1,3 @@
+echo .env > .gitignore
+echo certs/ca.pem >> .gitignore
+echo node_modules/ >> .gitignore

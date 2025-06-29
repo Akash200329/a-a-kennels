@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %></title>
+    <meta name="description" content="<%= description %>">
+    <meta name="keywords" content="A&A Kennels, edit puppy, puppy management, dog breeding, Jayanagar Mysore">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="<%= canonicalUrl %>">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "url": "<%= canonicalUrl %>",
+            "name": "<%= pageTitle %>",
+            "description": "<%= description %>",
+            "publisher": {
+                "@type": "Organization",
+                "name": "A&A Kennels",
+                "url": "https://a-and-a-kennels.onrender.com"
+            },
+            "potentialAction": {
+                "@type": "UpdateAction",
+                "target": "<%= canonicalUrl %>",
+                "name": "Update Puppy"
+            }
+        }
+    </script>
+    <style>
+        body { background: linear-gradient(135deg, #0f172a, #1e2a38); font-family: 'Exo 2', sans-serif; color: #ecf0f1; min-height: 100vh; display: flex; flex-direction: column; }
+        .form-container { max-width: 700px; margin: 30px auto; padding: 30px; background: rgba(44, 62, 80, 0.3); border-radius: 15px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 1.1em; margin-bottom: 8px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); }
+        button.submit-btn { width: 100%; padding: 15px; background: #3b82f6; color: #fff; border: none; border-radius: 10px; cursor: pointer; }
+        button.submit-btn:hover { background: #2563eb; }
+        .preview-img { max-width: 200px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Edit <%= puppy.name || 'Puppy' %> Details</h2>
+        <form action="/edit-puppy/<%= puppy.id %>" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="<%= puppy.id %>">
+            <div class="form-group">
+                <label for="name">Puppy Name:</label>
+                <input type="text" id="name" name="name" value="<%= puppy.name || '' %>" required>
+            </div>
+            <div class="form-group">
+                <label for="sex">Sex:</label>
+                <select id="sex" name="sex" required>
+                    <option value="Male" <%= puppy.sex === 'Male' ? 'selected' : '' %>>Male</option>
+                    <option value="Female" <%= puppy.sex === 'Female' ? 'selected' : '' %>>Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required><%= puppy.description || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label for="video_link">Video Link:</label>
+                <input type="url" id="video_link" name="video_link" value="<%= puppy.video_link || '' %>">
+            </div>
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="text" id="price" name="price" value="<%= puppy.price || '' %>" required>
+            </div>
+            <div class="form-group">
+                <label for="puppy_image">Puppy Image:</label>
+                <input type="file" id="puppy_image" name="puppy_image" accept="image/*">
+                <% if (puppy.puppy_image) { %>
+                    <img src="<%= puppy.puppy_image %>" alt="<%= puppy.name || 'Puppy' %> Image" class="preview-img">
+                <% } %>
+            </div>
+            <div class="form-group">
+                <label for="mother_name">Mother Name:</label>
+                <input type="text" id="mother_name" name="mother_name" value="<%= puppy.mother_name || '' %>" required>
+            </div>
+            <div class="form-group">
+                <label for="father_name">Father Name:</label>
+                <input type="text" id="father_name" name="father_name" value="<%= puppy.father_name || '' %>" required>
+            </div>
+            <div class="form-group">
+                <label for="parent_banner">Parent Banner Image:</label>
+                <input type="file" id="parent_banner" name="parent_banner" accept="image/*">
+                <% if (puppy.parent_banner) { %>
+                    <img src="<%= puppy.parent_banner %>" alt="Parent Banner for <%= puppy.name || 'Puppy' %>" class="preview-img">
+                <% } %>
+            </div>
+            <div class="form-group">
+                <label for="mother_image">Mother Image:</label>
+                <input type="file" id="mother_image" name="mother_image" accept="image/*">
+                <% if (puppy.mother_image) { %>
+                    <img src="<%= puppy.mother_image %>" alt="Mother of <%= puppy.name || 'Puppy' %>" class="preview-img">
+                <% } %>
+            </div>
+            <div class="form-group">
+                <label for="father_image">Father Image:</label>
+                <input type="file" id="father_image" name="father_image" accept="image/*">
+                <% if (puppy.father_image) { %>
+                    <img src="<%= puppy.father_image %>" alt="Father of <%= puppy.name || 'Puppy' %>" class="preview-img">
+                <% } %>
+            </div>
+            <div class="form-group">
+                <label for="available">Available:</label>
+                <select id="available" name="available" required>
+                    <option value="true" <%= puppy.available ? 'selected' : '' %>>Yes</option>
+                    <option value="false" <%= !puppy.available ? 'selected' : '' %>>No</option>
+                </select>
+            </div>
+            <button type="submit" class="submit-btn">Update Puppy</button>
+        </form>
+    </div>
+</body>
+</html>
