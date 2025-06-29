@@ -1070,7 +1070,7 @@ app.get("/", (req, res) => {
                 </div>
             </nav>
             <header>
-                <img src="/Uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo - Jayanagar, Mysore">
+                <img src="/uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo - Jayanagar, Mysore">
                 <h1>A&A Kennels - Our Male Studs</h1>
             </header>
             <div class="stud-container">`;
@@ -4516,797 +4516,822 @@ app.get("/update-male-stud/:id", isAdmin, (req, res) => {
   
 // Stud Performance Dashboard (Admin Only)
 app.get("/analysis", isAdmin, (req, res) => {
-    const queries = {
-      successRate: `
-              SELECT 
-                  SUM(CASE WHEN female_status = 'Delivered' THEN 1 ELSE 0 END) AS delivered,
-                  SUM(CASE WHEN female_status = 'Failure' THEN 1 ELSE 0 END) AS failed,
-                  COUNT(*) AS total
-              FROM studs
-          `,
-      puppyStats: `
-              SELECT 
-                  AVG(female_puppy_count) AS avg_puppies,
-                  MIN(female_puppy_count) AS min_puppies,
-                  MAX(female_puppy_count) AS max_puppies
-              FROM studs
-              WHERE female_status = 'Delivered' AND female_puppy_count IS NOT NULL
-          `,
-      ownerStats: `
-              SELECT 
-                  owner_name,
-                  COUNT(*) AS stud_count,
-                  SUM(CASE WHEN female_status = 'Delivered' THEN 1 ELSE 0 END) AS delivered_count
-              FROM studs
-              GROUP BY owner_name
-              ORDER BY stud_count DESC
-              LIMIT 5
-          `,
-      breedingTimeline: `
-              SELECT 
-                  DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m') AS heat_month,
-                  COUNT(DISTINCT s.id) AS heat_count,
-                  COUNT(DISTINCT CASE WHEN DATE_FORMAT(b.breeding_date, '%Y-%m') = DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m') THEN b.breeding_date END) AS breeding_count
-              FROM studs s
-              LEFT JOIN breeding_dates b ON s.id = b.stud_id
-              GROUP BY DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m')
-              ORDER BY heat_month
-          `,
-      upcomingEvents: `
-              SELECT 
-                  s.name,
-                  s.owner_name,
-                  DATE_FORMAT(DATE_ADD(s.female_first_day_of_heat, INTERVAL 6 MONTH), '%Y-%m-%d') AS next_heat_cycle,
-                  DATEDIFF(DATE_ADD(s.female_first_day_of_heat, INTERVAL 6 MONTH), CURDATE()) AS days_until_heat,
-                  DATE_FORMAT(DATE_ADD(MAX(b.breeding_date), INTERVAL 63 DAY), '%Y-%m-%d') AS puppy_delivery_date,
-                  s.female_status
-              FROM studs s
-              LEFT JOIN breeding_dates b ON s.id = b.stud_id
-              WHERE s.female_status != 'Delivered'
-              GROUP BY s.id, s.name, s.owner_name, s.female_first_day_of_heat, s.female_status
-              ORDER BY next_heat_cycle ASC
-              LIMIT 5
-          `,
-    };
-  
-    Promise.all([
-      new Promise((resolve, reject) => {
-        db.query(queries.successRate, (err, result) => {
-          if (err) reject(err);
-          else resolve(result[0] || { delivered: 0, failed: 0, total: 0 });
-        });
-      }),
-      new Promise((resolve, reject) => {
-        db.query(queries.puppyStats, (err, result) => {
-          if (err) reject(err);
-          else resolve(result[0] || { avg_puppies: null, min_puppies: null, max_puppies: null });
-        });
-      }),
-      new Promise((resolve, reject) => {
-        db.query(queries.ownerStats, (err, result) => {
-          if (err) reject(err);
-          else resolve(result || []);
-        });
-      }),
-      new Promise((resolve, reject) => {
-        db.query(queries.breedingTimeline, (err, result) => {
-          if (err) reject(err);
-          else resolve(result || []);
-        });
-      }),
-      new Promise((resolve, reject) => {
-        db.query(queries.upcomingEvents, (err, result) => {
-          if (err) reject(err);
-          else resolve(result || []);
-        });
-      }),
-    ])
-      .then(([successRate, puppyStats, ownerStats, breedingTimeline, upcomingEvents]) => {
-        const timelineLabels = breedingTimeline.length ? breedingTimeline.map((t) => t.heat_month) : ["No Data"];
-        const heatCounts = breedingTimeline.length ? breedingTimeline.map((t) => t.heat_count || 0) : [0];
-        const breedingCounts = breedingTimeline.length ? breedingTimeline.map((t) => t.breeding_count || 0) : [0];
-  
-        const html = `
-              <!DOCTYPE html>
-              <html lang="en">
-              <head>
-                  <title>Stud Performance Dashboard - A&A Kennels</title>
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <meta charset="UTF-8">
-                  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&family=Orbitron:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-                  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-                  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                  <style>
-                      /* Reset and Base Styles */
-                      * {
-                          box-sizing: border-box;
-                          margin: 0;
-                          padding: 0;
-                          scroll-behavior: smooth;
-                      }
-  
-                      body {
-                          background: linear-gradient(135deg, #0f172a, #1e2a38);
-                          font-family: 'Montserrat', sans-serif;
-                          color: #e2e8f0;
-                          margin: 0;
-                          padding: 0;
-                          min-height: 100vh;
-                          display: flex;
-                          flex-direction: column;
-                          position: relative;
-                          overflow-x: hidden;
-                      }
-  
-                      /* Advanced Particle Background */
-                      body::before {
-                          content: '';
-                          position: fixed;
-                          top: 0;
-                          left: 0;
-                          width: 100%;
-                          height: 100%;
-                          background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="10" cy="10" r="2" fill="rgba(52, 152, 219, 0.3)" opacity="0.6"><animate attributeName="cx" from="10" to="100%" dur="8s" repeatCount="indefinite" /><animate attributeName="cy" from="10" to="100%" dur="12s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="4" dur="4s" repeatCount="indefinite" /></circle><circle cx="50%" cy="50%" r="2" fill="rgba(230, 126, 34, 0.3)" opacity="0.6"><animate attributeName="cx" from="50%" to="0" dur="10s" repeatCount="indefinite" /><animate attributeName="cy" from="50%" to="100%" dur="6s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="5" dur="5s" repeatCount="indefinite" /></circle><circle cx="20%" cy="80%" r="2" fill="rgba(52, 152, 219, 0.3)" opacity="0.6"><animate attributeName="cx" from="20%" to="80%" dur="14s" repeatCount="indefinite" /><animate attributeName="cy" from="80%" to="20%" dur="9s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="3" dur="3s" repeatCount="indefinite" /></circle><circle cx="80%" cy="30%" r="2" fill="rgba(255, 99, 71, 0.3)" opacity="0.6"><animate attributeName="cx" from="80%" to="10%" dur="12s" repeatCount="indefinite" /><animate attributeName="cy" from="30%" to="90%" dur="10s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="4" dur="4s" repeatCount="indefinite" /></circle></svg>');
-                          z-index: -1;
-                          pointer-events: none;
-                          animation: subtleMove 20s infinite linear;
-                      }
-  
-                      @keyframes subtleMove {
-                          0% { transform: translate(0, 0) scale(1); }
-                          50% { transform: translate(20px, -20px) scale(1.05); }
-                          100% { transform: translate(0, 0) scale(1); }
-                      }
-  
-                      /* Sticky Header with Parallax and Glassmorphism */
-                    header {
-                        background: rgba(15, 23, 42, 0.4);
-                        backdrop-filter: blur(15px);
-                        -webkit-backdrop-filter: blur(15px);
-                        padding: 20px;
-                        text-align: center;
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 15px;
-                        border-radius: 20px;
-                        margin: 20px auto;
-                        max-width: 1300px;
-                        border: 1px solid rgba(255, 255, 255, 0.15);
-                        position: relative; /* Ensures the header stays at the top */
-                        top: 0; /* Fixes it to the top of the viewport */
-                        z-index: 100; /* Ensures it stays above other content */
-                        animation: slideDown 1.2s ease-out;
-                        overflow: hidden;
-                    }
-  
-                      header::before {
-                          content: '';
-                          position: absolute;
-                          top: -50%;
-                          left: -50%;
-                          width: 200%;
-                          height: 200%;
-                          background: radial-gradient(circle, rgba(52, 152, 219, 0.3) 0%, transparent 70%);
-                          animation: rotateGlow 10s infinite linear;
-                          z-index: -1;
-                      }
-  
-                      @keyframes rotateGlow {
-                          0% { transform: rotate(0deg); }
-                          100% { transform: rotate(360deg); }
-                      }
-  
-                      header img {
-                          width: 80px;
-                          height: auto;
-                          border-radius: 50%;
-                          transition: transform 0.4s ease, box-shadow 0.4s ease;
-                          box-shadow: 0 0 20px rgba(230, 126, 34, 0.8), 0 0 30px rgba(52, 152, 219, 0.6);
-                          animation: pulse 2.5s infinite ease-in-out;
-                      }
-  
-                      header img:hover {
-                          transform: scale(1.15) rotate(10deg);
-                          box-shadow: 0 0 30px rgba(230, 126, 34, 1), 0 0 40px rgba(52, 152, 219, 0.9);
-                      }
-  
-                      @keyframes pulse {
-                          0%, 100% { transform: scale(1); }
-                          50% { transform: scale(1.08); }
-                      }
-  
-                      header h1 {
-                          font-family: 'Orbitron', sans-serif;
-                          font-size: 2em; /* Reduced font size */
-                          margin: 0;
-                          text-transform: uppercase;
-                          letter-spacing: 4px;
-                          background: linear-gradient(45deg, #f97316, #3b82f6);
-                          -webkit-background-clip: text;
-                          -webkit-text-fill-color: transparent;
-                          text-shadow: 0 0 15px rgba(249, 115, 22, 0.8), 0 0 25px rgba(59, 130, 246, 0.6);
-                          transition: transform 0.4s ease, text-shadow 0.4s ease;
-                      }
-  
-                      header h1:hover {
-                          transform: translateY(-5px);
-                          text-shadow: 0 0 25px rgba(249, 115, 22, 1), 0 0 35px rgba(59, 130, 246, 1);
-                      }
-  
-                      /* Main Heading with Animated Glow */
-                      h2 {
-                          font-family: 'Orbitron', sans-serif;
-                          font-size: 2.8em;
-                          color: #3b82f6;
-                          text-align: center;
-                          margin: 40px 0 30px;
-                          text-transform: uppercase;
-                          letter-spacing: 4px;
-                          text-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
-                          animation: neonPulse 3s infinite alternate;
-                          position: relative;
-                          z-index: 1;
-                      }
-  
-                      h2::after {
-                          content: '';
-                          position: absolute;
-                          bottom: -10px;
-                          left: 50%;
-                          transform: translateX(-50%);
-                          width: 60px;
-                          height: 4px;
-                          background: linear-gradient(90deg, #f97316, #3b82f6);
-                          border-radius: 2px;
-                          box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
-                          animation: lineGlow 3s infinite alternate;
-                      }
-  
-                      @keyframes neonPulse {
-                          0% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.7), 0 0 30px rgba(249, 115, 22, 0.4); }
-                          100% { text-shadow: 0 0 30px rgba(59, 130, 246, 1), 0 0 40px rgba(249, 115, 22, 0.7); }
-                      }
-  
-                      @keyframes lineGlow {
-                          0% { box-shadow: 0 0 15px rgba(249, 115, 22, 0.5); }
-                          100% { box-shadow: 0 0 25px rgba(249, 115, 22, 0.8); }
-                      }
-  
-                      /* Dashboard Container with Masonry Grid */
-                      .dashboard-container {
-                          display: grid;
-                          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-                          gap: 30px;
-                          max-width: 1400px;
-                          margin: 0 auto 50px;
-                          padding: 0 20px;
-                          position: relative;
-                          z-index: 1;
-                      }
-  
-                      /* Card with Advanced Glassmorphism and 3D Effects */
-                      .card {
-                          background: rgba(15, 23, 42, 0.3);
-                          backdrop-filter: blur(15px);
-                          -webkit-backdrop-filter: blur(15px);
-                          border-radius: 20px;
-                          overflow: hidden;
-                          box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4), -5px -5px 20px rgba(255, 255, 255, 0.05);
-                          border: 1px solid rgba(255, 255, 255, 0.1);
-                          transition: transform 0.5s ease, box-shadow 0.5s ease;
-                          position: relative;
-                          animation: fadeInUp 0.8s ease-out;
-                          transform-style: preserve-3d;
-                          perspective: 1000px;
-                          padding: 25px;
-                      }
-  
-                      .card::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: 0;
-                          width: 100%;
-                          height: 100%;
-                          background: linear-gradient(45deg, rgba(59, 130, 246, 0.2), rgba(249, 115, 22, 0.2));
-                          opacity: 0;
-                          transition: opacity 0.5s ease;
-                          z-index: -1;
-                      }
-  
-                      .card:hover::before {
-                          opacity: 1;
-                      }
-  
-                      .card:hover {
-                          transform: translateY(-10px) scale(1.03) rotateX(5deg) rotateY(5deg);
-                          box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6), 0 0 50px rgba(249, 115, 22, 0.4);
-                      }
-  
-                      .card h3 {
-                          font-family: 'Orbitron', sans-serif;
-                          font-size: 1.8em;
-                          color: #f97316;
-                          margin-bottom: 20px;
-                          text-transform: uppercase;
-                          letter-spacing: 2px;
-                          text-shadow: 0 0 15px rgba(249, 115, 22, 0.6);
-                          transition: color 0.4s ease, text-shadow 0.4s ease;
-                      }
-  
-                      .card h3:hover {
-                          color: #3b82f6;
-                          text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
-                      }
-  
-                      .card p {
-                          font-size: 1.1em;
-                          color: #cbd5e1;
-                          margin: 10px 0;
-                          transition: color 0.4s ease, transform 0.4s ease;
-                      }
-  
-                      .card p:hover {
-                          color: #ffffff;
-                          transform: translateX(5px);
-                      }
-  
-                      /* Table Container for Upcoming Events with Horizontal Scrolling */
-                      .table-container {
-                          overflow-x: auto;
-                          width: 100%;
-                          -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
-                      }
-  
-                      .table-container::-webkit-scrollbar {
-                          height: 8px;
-                      }
-  
-                      .table-container::-webkit-scrollbar-thumb {
-                          background: #3b82f6;
-                          border-radius: 4px;
-                          box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-                      }
-  
-                      .table-container::-webkit-scrollbar-track {
-                          background: rgba(15, 23, 42, 0.5);
-                          border-radius: 4px;
-                      }
-  
-                      .card table {
-                          width: 100%;
-                          min-width: 600px; /* Ensure the table is wide enough to trigger scrolling */
-                          border-collapse: separate;
-                          border-spacing: 0 10px;
-                      }
-  
-                      .card th,
-                      .card td {
-                          padding: 12px 15px;
-                          text-align: left;
-                          font-size: 1em;
-                          color: #e2e8f0;
-                          background: rgba(15, 23, 42, 0.6);
-                          transition: background 0.3s ease, transform 0.3s ease;
-                          border-radius: 8px;
-                      }
-  
-                      .card th {
-                          background: linear-gradient(90deg, #1e293b, #2d3748);
-                          color: #3b82f6;
-                          font-weight: 700;
-                          text-transform: uppercase;
-                          letter-spacing: 1px;
-                      }
-  
-                      .card tr:hover td {
-                          background: rgba(59, 130, 246, 0.15);
-                          transform: translateY(-2px);
-                      }
-  
-                      /* Breeding Timeline Chart Size Adjustment */
-                      .breeding-timeline-chart {
-                          width: 100%;
-                          height: 400px !important; /* Increased height for better visibility */
-                      }
-  
-                      .card canvas {
-                          max-width: 100%;
-                          height: auto;
-                          border-radius: 10px;
-                          box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-                      }
-  
-                      /* Heat Soon Highlight */
-                      .heat-soon {
-                          background: rgba(249, 115, 22, 0.2);
-                          color: #f97316;
-                          font-weight: 600;
-                          animation: pulseHighlight 2s infinite ease-in-out;
-                      }
-  
-                      @keyframes pulseHighlight {
-                          0%,
-                          100% {
-                              background: rgba(249, 115, 22, 0.2);
-                          }
-                          50% {
-                              background: rgba(249, 115, 22, 0.4);
-                          }
-                      }
-  
-                      /* Back Links with Neumorphism */
-                      .back-link {
-                          display: inline-block;
-                          padding: 12px 25px;
-                          background: rgba(15, 23, 42, 0.6);
-                          color: #e2e8f0;
-                          text-decoration: none;
-                          border-radius: 10px;
-                          box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4), -3px -3px 10px rgba(255, 255, 255, 0.05);
-                          transition: all 0.4s ease;
-                          font-size: 1em;
-                          font-weight: 500;
-                          margin: 10px 15px;
-                          position: relative;
-                          overflow: hidden;
-                      }
-  
-                      .back-link::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: -100%;
-                          width: 100%;
-                          height: 100%;
-                          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-                          transition: left 0.6s ease;
-                      }
-  
-                      .back-link:hover::before {
-                          left: 100%;
-                      }
-  
-                      .back-link:hover {
-                          background: rgba(59, 130, 246, 0.4);
-                          transform: translateY(-3px);
-                          box-shadow: 0 6px 15px rgba(59, 130, 246, 0.5);
-                          color: #ffffff;
-                      }
-  
-                      /* Footer with Enhanced Glassmorphism */
-                      footer {
-                          background: rgba(15, 23, 42, 0.4);
-                          backdrop-filter: blur(15px);
-                          -webkit-backdrop-filter: blur(15px);
-                          padding: 25px;
-                          text-align: center;
-                          margin-top: auto;
-                          box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.5);
-                          border-top: 1px solid rgba(255, 255, 255, 0.15);
-                      }
-  
-                      footer .contact-section {
-                          display: grid;
-                          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                          gap: 20px;
-                          max-width: 900px;
-                          margin: 0 auto;
-                          padding: 15px 0;
-                      }
-  
-                      footer p {
-                          margin: 5px 0;
-                          font-size: 1.1em;
-                          color: #e2e8f0;
-                          font-weight: 400;
-                      }
-  
-                      footer a {
-                          color: #3b82f6;
-                          text-decoration: none;
-                          transition: color 0.4s ease, transform 0.4s ease;
-                          display: inline-flex;
-                          align-items: center;
-                          gap: 10px;
-                          font-size: 1.2em;
-                          font-weight: 500;
-                      }
-  
-                      footer a:hover {
-                          color: #f97316;
-                          transform: translateX(8px);
-                      }
-  
-                      footer i {
-                          font-size: 1.8em;
-                          transition: transform 0.4s ease;
-                      }
-  
-                      footer a:hover i {
-                          transform: scale(1.3) rotate(5deg);
-                      }
-  
-                      /* Animations */
-                      @keyframes slideDown {
-                          from {
-                              opacity: 0;
-                              transform: translateY(-60px);
-                          }
-                          to {
-                              opacity: 1;
-                              transform: translateY(0);
-                          }
-                      }
-  
-                      @keyframes fadeInUp {
-                          from {
-                              opacity: 0;
-                              transform: translateY(30px);
-                          }
-                          to {
-                              opacity: 1;
-                              transform: translateY(0);
-                          }
-                      }
-  
-                      /* Responsive Design */
-                      @media (max-width: 768px) {
-                          header {
-                              flex-direction: column;
-                              margin: 15px;
-                              padding: 15px;
-                          }
-  
-                          header img {
-                              width: 60px;
-                          }
-  
-                          header h1 {
-                              font-size: 1.5em;
-                          }
-  
-                          h2 {
-                              font-size: 2em;
-                          }
-  
-                          .dashboard-container {
-                              grid-template-columns: 1fr;
-                              gap: 20px;
-                          }
-  
-                          .card {
-                              padding: 15px;
-                          }
-  
-                          .card h3 {
-                              font-size: 1.5em;
-                          }
-  
-                          .card p,
-                          .card th,
-                          .card td {
-                              font-size: 0.9em;
-                          }
-  
-                          .breeding-timeline-chart {
-                              height: 300px !important;
-                          }
-  
-                          .back-link {
-                              margin: 10px 0;
-                          }
-  
-                          footer .contact-section {
-                              grid-template-columns: 1fr;
-                          }
-                      }
-  
-                      @media (max-width: 480px) {
-                          header img {
-                              width: 50px;
-                          }
-  
-                          header h1 {
-                              font-size: 1.2em;
-                          }
-  
-                          h2 {
-                              font-size: 1.6em;
-                          }
-  
-                          .card {
-                              padding: 10px;
-                          }
-  
-                          .card h3 {
-                              font-size: 1.3em;
-                          }
-  
-                          .card p,
-                          .card th,
-                          .card td {
-                              font-size: 0.85em;
-                          }
-  
-                          .breeding-timeline-chart {
-                              height: 250px !important;
-                          }
-                      }
-                  </style>
-              </head>
-              <body>
-                  <header>
-                      <img src="/uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo">
-                      <h1>A&A Kennels - Stud Performance Dashboard</h1>
-                  </header>
-                  <h2>Stud Performance Dashboard</h2>
-                  <div class="dashboard-container">
-                      <div class="card">
-                          <h3>Breeding Success Rate</h3>
-                          <canvas id="successChart"></canvas>
-                      </div>
-                      <div class="card">
-                          <h3>Puppy Count Statistics</h3>
-                          <p>Average: ${puppyStats.avg_puppies ? puppyStats.avg_puppies.toFixed(1) : "N/A"}</p>
-                          <p>Min: ${puppyStats.min_puppies || "N/A"}</p>
-                          <p>Max: ${puppyStats.max_puppies || "N/A"}</p>
-                      </div>
-                      <div class="card">
-                          <h3>Top Owners</h3>
-                          <div class="table-container">
-                              <table>
-                                  <tr><th>Owner</th><th>Studs</th><th>Success Rate</th></tr>
-                                  ${
-                                    ownerStats.length
-                                      ? ownerStats
-                                          .map(
-                                            (owner) => `
-                                      <tr>
-                                          <td>${owner.owner_name || "Unknown"}</td>
-                                          <td>${owner.stud_count || 0}</td>
-                                          <td>${
-                                            owner.stud_count > 0
-                                              ? ((owner.delivered_count / owner.stud_count) * 100).toFixed(1)
-                                              : 0
-                                          }%</td>
-                                      </tr>
-                                  `
-                                          )
-                                          .join("")
-                                      : '<tr><td colspan="3">No data available</td></tr>'
-                                  }
-                              </table>
-                          </div>
-                      </div>
-                      <div class="card">
-                          <h3>Breeding Timeline</h3>
-                          <canvas id="timelineChart" class="breeding-timeline-chart"></canvas>
-                      </div>
-                      <div class="card">
-                          <h3>Upcoming Events</h3>
-                          <div class="table-container">
-                              <table>
-                                  <tr><th>Stud</th><th>Owner</th><th>Next Heat</th><th>Days Until Heat</th><th>Delivery Date</th></tr>
-                                  ${
-                                    upcomingEvents.length
-                                      ? upcomingEvents
-                                          .map(
-                                            (event) => `
-                                      <tr ${
-                                        event.days_until_heat <= 7 && event.days_until_heat >= 0
-                                          ? 'class="heat-soon"'
-                                          : ""
-                                      }>
-                                          <td>${event.name || "Unknown"}</td>
-                                          <td>${event.owner_name || "Unknown"}</td>
-                                          <td>${event.next_heat_cycle || "N/A"}</td>
-                                          <td>${event.days_until_heat !== null ? event.days_until_heat : "N/A"}</td>
-                                          <td>${
-                                            event.female_status === "Waiting"
-                                              ? event.puppy_delivery_date || "N/A"
-                                              : "N/A"
-                                          }</td>
-                                      </tr>
-                                  `
-                                          )
-                                          .join("")
-                                      : '<tr><td colspan="5">No upcoming events</td></tr>'
-                                  }
-                              </table>
-                          </div>
-                      </div>
-                  </div>
-                  <div style="text-align: center; margin: 20px 0;">
-                      <a href="/admin-dashboard" class="back-link">Admin Dashboard</a>
-                      <a href="/" class="back-link">View Male Studs</a>
-                      <a href="/logout" class="back-link">Logout</a>
-                  </div>
-                  <footer>
-                      <p>Contact Us:</p>
-                      <div class="contact-section">
-                          <p>
-                              <a href="https://wa.me/917338040633" target="_blank">
-                                  <i class="fab fa-whatsapp"></i> 7338040633
-                              </a>
-                          </p>
-                          <p>
-                              <a href="https://www.facebook.com/share/1HdVyCqHuM/" target="_blank">
-                                  <i class="fab fa-facebook-f"></i> A&A Kennels
-                              </a>
-                          </p>
-                      </div>
-                  </footer>
-                  <script>
-                      const successCtx = document.getElementById("successChart").getContext("2d");
-                      new Chart(successCtx, {
-                          type: "pie",
-                          data: {
-                              labels: ["Delivered", "Failed"],
-                              datasets: [{
-                                  data: [${successRate.delivered || 0}, ${successRate.failed || 0}],
-                                  backgroundColor: ["#27ae60", "#e74c3c"],
-                                  borderColor: "#ecf0f1",
-                                  borderWidth: 1,
-                              }],
-                          },
-                          options: {
-                              responsive: true,
-                              plugins: {
-                                  legend: { position: "top", labels: { color: "#ecf0f1" } },
-                                  tooltip: { bodyFont: { size: 14 }, titleFont: { size: 16 } },
-                              },
-                          },
-                      });
-  
-                      const timelineCtx = document.getElementById("timelineChart").getContext("2d");
-                      new Chart(timelineCtx, {
-                          type: "line",
-                          data: {
-                              labels: [${timelineLabels.map((label) => `'${label}'`).join(",")}],
-                              datasets: [
-                                  {
-                                      label: "Heat Starts",
-                                      data: [${heatCounts.join(",")}],
-                                      borderColor: "#3498db",
-                                      fill: false,
-                                      tension: 0.4,
-                                  },
-                                  {
-                                      label: "Breeding Events",
-                                      data: [${breedingCounts.join(",")}],
-                                      borderColor: "#e67e22",
-                                      fill: false,
-                                      tension: 0.4,
-                                  },
-                              ],
-                          },
-                          options: {
-                              responsive: true,
-                              maintainAspectRatio: false, /* Allow custom height */
-                              scales: {
-                                  x: { ticks: { color: "#ecf0f1" } },
-                                  y: { ticks: { color: "#ecf0f1" }, beginAtZero: true },
-                              },
-                              plugins: {
-                                  legend: { labels: { color: "#ecf0f1" } },
-                                  tooltip: { bodyFont: { size: 14 }, titleFont: { size: 16 } },
-                              },
-                          },
-                      });
-                  </script>
-              </body>
-              </html>
-          `;
-        res.send(html);
-      })
-      .catch((err) => {
-        console.error("Analysis route failed:", err);
-        res.status(500).send(`Error generating analysis: ${err.message}`);
+  const queries = {
+    successRate: `
+      SELECT 
+          SUM(CASE WHEN female_status = 'Delivered' THEN 1 ELSE 0 END) AS delivered,
+          SUM(CASE WHEN female_status = 'Failure' THEN 1 ELSE 0 END) AS failed,
+          COUNT(*) AS total
+      FROM studs
+    `,
+    puppyStats: `
+      SELECT 
+          AVG(female_puppy_count) AS avg_puppies,
+          MIN(female_puppy_count) AS min_puppies,
+          MAX(female_puppy_count) AS max_puppies
+      FROM studs
+      WHERE female_status = 'Delivered' AND female_puppy_count IS NOT NULL
+    `,
+    ownerStats: `
+      SELECT 
+          owner_name,
+          COUNT(*) AS stud_count,
+          SUM(CASE WHEN female_status = 'Delivered' THEN 1 ELSE 0 END) AS delivered_count
+      FROM studs
+      GROUP BY owner_name
+      ORDER BY stud_count DESC
+      LIMIT 5
+    `,
+    breedingTimeline: `
+      SELECT 
+          DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m') AS heat_month,
+          COUNT(DISTINCT s.id) AS heat_count,
+          COUNT(DISTINCT CASE WHEN DATE_FORMAT(b.breeding_date, '%Y-%m') = DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m') THEN b.breeding_date END) AS breeding_count
+      FROM studs s
+      LEFT JOIN breeding_dates b ON s.id = b.stud_id
+      GROUP BY DATE_FORMAT(s.female_first_day_of_heat, '%Y-%m')
+      ORDER BY heat_month
+    `,
+    upcomingEvents: `
+      SELECT 
+          s.name,
+          s.owner_name,
+          DATE_FORMAT(DATE_ADD(s.female_first_day_of_heat, INTERVAL 6 MONTH), '%Y-%m-%d') AS next_heat_cycle,
+          DATEDIFF(DATE_ADD(s.female_first_day_of_heat, INTERVAL 6 MONTH), CURDATE()) AS days_until_heat,
+          DATE_FORMAT(DATE_ADD(MAX(b.breeding_date), INTERVAL 63 DAY), '%Y-%m-%d') AS puppy_delivery_date,
+          s.female_status
+      FROM studs s
+      LEFT JOIN breeding_dates b ON s.id = b.stud_id
+      WHERE s.female_status != 'Delivered'
+      GROUP BY s.id, s.name, s.owner_name, s.female_first_day_of_heat, s.female_status
+      ORDER BY next_heat_cycle ASC
+      LIMIT 5
+    `,
+  };
+
+  Promise.all([
+    new Promise((resolve, reject) => {
+      db.query(queries.successRate, (err, result) => {
+        if (err) reject(err);
+        else resolve(result[0] || { delivered: 0, failed: 0, total: 0 });
       });
-  });
+    }),
+    new Promise((resolve, reject) => {
+      db.query(queries.puppyStats, (err, result) => {
+        if (err) reject(err);
+        else resolve(result[0] || { avg_puppies: null, min_puppies: null, max_puppies: null });
+      });
+    }),
+    new Promise((resolve, reject) => {
+      db.query(queries.ownerStats, (err, result) => {
+        if (err) reject(err);
+        else resolve(result || []);
+      });
+    }),
+    new Promise((resolve, reject) => {
+      db.query(queries.breedingTimeline, (err, result) => {
+        if (err) reject(err);
+        else resolve(result || []);
+      });
+    }),
+    new Promise((resolve, reject) => {
+      db.query(queries.upcomingEvents, (err, result) => {
+        if (err) reject(err);
+        else resolve(result || []);
+      });
+    }),
+  ])
+    .then(([successRate, puppyStats, ownerStats, breedingTimeline, upcomingEvents]) => {
+      const timelineLabels = breedingTimeline.length ? breedingTimeline.map((t) => t.heat_month) : ["No Data"];
+      const heatCounts = breedingTimeline.length ? breedingTimeline.map((t) => t.heat_count || 0) : [0];
+      const breedingCounts = breedingTimeline.length ? breedingTimeline.map((t) => t.breeding_count || 0) : [0];
+
+      // Safely handle numeric values with fallback
+      const avgPuppies = puppyStats.avg_puppies !== null ? Number(puppyStats.avg_puppies).toFixed(1) : "N/A";
+      const minPuppies = puppyStats.min_puppies !== null ? puppyStats.min_puppies : "N/A";
+      const maxPuppies = puppyStats.max_puppies !== null ? puppyStats.max_puppies : "N/A";
+
+      const html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <title>Stud Performance Dashboard - A&A Kennels | Jayanagar, Mysore</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta charset="UTF-8">
+            <meta name="description" content="Admin dashboard for stud performance analysis at A&A Kennels in Jayanagar, Mysore. View breeding success rates, puppy stats, and upcoming events.">
+            <meta name="keywords" content="A&A Kennels, stud performance, breeding analysis, dog breeding, Jayanagar Mysore">
+            <meta name="robots" content="noindex, nofollow"> <!-- Prevent indexing as it's an admin page -->
+            <link rel="canonical" href="https://a-and-a-kennels.onrender.com/analysis">
+            <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700&family=Orbitron:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <!-- Structured Data for WebPage -->
+            <script type="application/ld+json">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "WebPage",
+                    "url": "https://a-and-a-kennels.onrender.com/analysis",
+                    "name": "Stud Performance Dashboard - A&A Kennels",
+                    "description": "Admin dashboard for stud performance analysis at A&A Kennels in Jayanagar, Mysore.",
+                    "publisher": {
+                        "@type": "Organization",
+                        "name": "A&A Kennels",
+                        "url": "https://a-and-a-kennels.onrender.com",
+                        "logo": "https://a-and-a-kennels.onrender.com/uploads/a_a_kennels_logo_transparent.png"
+                    }
+                }
+            </script>
+            <style>
+                /* Reset and Base Styles */
+                * {
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                    scroll-behavior: smooth;
+                }
+
+                body {
+                    background: linear-gradient(135deg, #0f172a, #1e2a38);
+                    font-family: 'Montserrat', sans-serif;
+                    color: #e2e8f0;
+                    margin: 0;
+                    padding: 0;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    position: relative;
+                    overflow-x: hidden;
+                }
+
+                /* Advanced Particle Background */
+                body::before {
+                    content: '';
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="10" cy="10" r="2" fill="rgba(52, 152, 219, 0.3)" opacity="0.6"><animate attributeName="cx" from="10" to="100%" dur="8s" repeatCount="indefinite" /><animate attributeName="cy" from="10" to="100%" dur="12s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="4" dur="4s" repeatCount="indefinite" /></circle><circle cx="50%" cy="50%" r="2" fill="rgba(230, 126, 34, 0.3)" opacity="0.6"><animate attributeName="cx" from="50%" to="0" dur="10s" repeatCount="indefinite" /><animate attributeName="cy" from="50%" to="100%" dur="6s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="5" dur="5s" repeatCount="indefinite" /></circle><circle cx="20%" cy="80%" r="2" fill="rgba(52, 152, 219, 0.3)" opacity="0.6"><animate attributeName="cx" from="20%" to="80%" dur="14s" repeatCount="indefinite" /><animate attributeName="cy" from="80%" to="20%" dur="9s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="3" dur="3s" repeatCount="indefinite" /></circle><circle cx="80%" cy="30%" r="2" fill="rgba(255, 99, 71, 0.3)" opacity="0.6"><animate attributeName="cx" from="80%" to="10%" dur="12s" repeatCount="indefinite" /><animate attributeName="cy" from="30%" to="90%" dur="10s" repeatCount="indefinite" /><animate attributeName="r" from="2" to="4" dur="4s" repeatCount="indefinite" /></circle></svg>');
+                    z-index: -1;
+                    pointer-events: none;
+                    animation: subtleMove 20s infinite linear;
+                }
+
+                @keyframes subtleMove {
+                    0% { transform: translate(0, 0) scale(1); }
+                    50% { transform: translate(20px, -20px) scale(1.05); }
+                    100% { transform: translate(0, 0) scale(1); }
+                }
+
+                /* Sticky Header with Parallax and Glassmorphism */
+                header {
+                    background: rgba(15, 23, 42, 0.4);
+                    backdrop-filter: blur(15px);
+                    -webkit-backdrop-filter: blur(15px);
+                    padding: 20px;
+                    text-align: center;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 15px;
+                    border-radius: 20px;
+                    margin: 20px auto;
+                    max-width: 1300px;
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    position: relative;
+                    top: 0;
+                    z-index: 100;
+                    animation: slideDown 1.2s ease-out;
+                    overflow: hidden;
+                }
+
+                header::before {
+                    content: '';
+                    position: absolute;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: radial-gradient(circle, rgba(52, 152, 219, 0.3) 0%, transparent 70%);
+                    animation: rotateGlow 10s infinite linear;
+                    z-index: -1;
+                }
+
+                @keyframes rotateGlow {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+
+                header img {
+                    width: 80px;
+                    height: auto;
+                    border-radius: 50%;
+                    transition: transform 0.4s ease, box-shadow 0.4s ease;
+                    box-shadow: 0 0 20px rgba(230, 126, 34, 0.8), 0 0 30px rgba(52, 152, 219, 0.6);
+                    animation: pulse 2.5s infinite ease-in-out;
+                }
+
+                header img:hover {
+                    transform: scale(1.15) rotate(10deg);
+                    box-shadow: 0 0 30px rgba(230, 126, 34, 1), 0 0 40px rgba(52, 152, 219, 0.9);
+                }
+
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.08); }
+                }
+
+                header h1 {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 2em;
+                    margin: 0;
+                    text-transform: uppercase;
+                    letter-spacing: 4px;
+                    background: linear-gradient(45deg, #f97316, #3b82f6);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    text-shadow: 0 0 15px rgba(249, 115, 22, 0.8), 0 0 25px rgba(59, 130, 246, 0.6);
+                    transition: transform 0.4s ease, text-shadow 0.4s ease;
+                }
+
+                header h1:hover {
+                    transform: translateY(-5px);
+                    text-shadow: 0 0 25px rgba(249, 115, 22, 1), 0 0 35px rgba(59, 130, 246, 1);
+                }
+
+                /* Main Heading with Animated Glow */
+                h2 {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 2.8em;
+                    color: #3b82f6;
+                    text-align: center;
+                    margin: 40px 0 30px;
+                    text-transform: uppercase;
+                    letter-spacing: 4px;
+                    text-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
+                    animation: neonPulse 3s infinite alternate;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                h2::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 60px;
+                    height: 4px;
+                    background: linear-gradient(90deg, #f97316, #3b82f6);
+                    border-radius: 2px;
+                    box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
+                    animation: lineGlow 3s infinite alternate;
+                }
+
+                @keyframes neonPulse {
+                    0% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.7), 0 0 30px rgba(249, 115, 22, 0.4); }
+                    100% { text-shadow: 0 0 30px rgba(59, 130, 246, 1), 0 0 40px rgba(249, 115, 22, 0.7); }
+                }
+
+                @keyframes lineGlow {
+                    0% { box-shadow: 0 0 15px rgba(249, 115, 22, 0.5); }
+                    100% { box-shadow: 0 0 25px rgba(249, 115, 22, 0.8); }
+                }
+
+                /* Dashboard Container with Masonry Grid */
+                .dashboard-container {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                    gap: 30px;
+                    max-width: 1400px;
+                    margin: 0 auto 50px;
+                    padding: 0 20px;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                /* Card with Advanced Glassmorphism and 3D Effects */
+                .card {
+                    background: rgba(15, 23, 42, 0.3);
+                    backdrop-filter: blur(15px);
+                    -webkit-backdrop-filter: blur(15px);
+                    border-radius: 20px;
+                    overflow: hidden;
+                    box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4), -5px -5px 20px rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    transition: transform 0.5s ease, box-shadow 0.5s ease;
+                    position: relative;
+                    animation: fadeInUp 0.8s ease-out;
+                    transform-style: preserve-3d;
+                    perspective: 1000px;
+                    padding: 25px;
+                }
+
+                .card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(45deg, rgba(59, 130, 246, 0.2), rgba(249, 115, 22, 0.2));
+                    opacity: 0;
+                    transition: opacity 0.5s ease;
+                    z-index: -1;
+                }
+
+                .card:hover::before {
+                    opacity: 1;
+                }
+
+                .card:hover {
+                    transform: translateY(-10px) scale(1.03) rotateX(5deg) rotateY(5deg);
+                    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6), 0 0 50px rgba(249, 115, 22, 0.4);
+                }
+
+                .card h3 {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 1.8em;
+                    color: #f97316;
+                    margin-bottom: 20px;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    text-shadow: 0 0 15px rgba(249, 115, 22, 0.6);
+                    transition: color 0.4s ease, text-shadow 0.4s ease;
+                }
+
+                .card h3:hover {
+                    color: #3b82f6;
+                    text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+                }
+
+                .card p {
+                    font-size: 1.1em;
+                    color: #cbd5e1;
+                    margin: 10px 0;
+                    transition: color 0.4s ease, transform 0.4s ease;
+                }
+
+                .card p:hover {
+                    color: #ffffff;
+                    transform: translateX(5px);
+                }
+
+                /* Table Container for Upcoming Events with Horizontal Scrolling */
+                .table-container {
+                    overflow-x: auto;
+                    width: 100%;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                .table-container::-webkit-scrollbar {
+                    height: 8px;
+                }
+
+                .table-container::-webkit-scrollbar-thumb {
+                    background: #3b82f6;
+                    border-radius: 4px;
+                    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+                }
+
+                .table-container::-webkit-scrollbar-track {
+                    background: rgba(15, 23, 42, 0.5);
+                    border-radius: 4px;
+                }
+
+                .card table {
+                    width: 100%;
+                    min-width: 600px;
+                    border-collapse: separate;
+                    border-spacing: 0 10px;
+                }
+
+                .card th,
+                .card td {
+                    padding: 12px 15px;
+                    text-align: left;
+                    font-size: 1em;
+                    color: #e2e8f0;
+                    background: rgba(15, 23, 42, 0.6);
+                    transition: background 0.3s ease, transform 0.3s ease;
+                    border-radius: 8px;
+                }
+
+                .card th {
+                    background: linear-gradient(90deg, #1e293b, #2d3748);
+                    color: #3b82f6;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .card tr:hover td {
+                    background: rgba(59, 130, 246, 0.15);
+                    transform: translateY(-2px);
+                }
+
+                /* Breeding Timeline Chart Size Adjustment */
+                .breeding-timeline-chart {
+                    width: 100%;
+                    height: 400px !important;
+                }
+
+                .card canvas {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 10px;
+                    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+                }
+
+                /* Heat Soon Highlight */
+                .heat-soon {
+                    background: rgba(249, 115, 22, 0.2);
+                    color: #f97316;
+                    font-weight: 600;
+                    animation: pulseHighlight 2s infinite ease-in-out;
+                }
+
+                @keyframes pulseHighlight {
+                    0%,
+                    100% {
+                        background: rgba(249, 115, 22, 0.2);
+                    }
+                    50% {
+                        background: rgba(249, 115, 22, 0.4);
+                    }
+                }
+
+                /* Back Links with Neumorphism */
+                .back-link {
+                    display: inline-block;
+                    padding: 12px 25px;
+                    background: rgba(15, 23, 42, 0.6);
+                    color: #e2e8f0;
+                    text-decoration: none;
+                    border-radius: 10px;
+                    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4), -3px -3px 10px rgba(255, 255, 255, 0.05);
+                    transition: all 0.4s ease;
+                    font-size: 1em;
+                    font-weight: 500;
+                    margin: 10px 15px;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .back-link::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                    transition: left 0.6s ease;
+                }
+
+                .back-link:hover::before {
+                    left: 100%;
+                }
+
+                .back-link:hover {
+                    background: rgba(59, 130, 246, 0.4);
+                    transform: translateY(-3px);
+                    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.5);
+                    color: #ffffff;
+                }
+
+                /* Footer with Enhanced Glassmorphism */
+                footer {
+                    background: rgba(15, 23, 42, 0.4);
+                    backdrop-filter: blur(15px);
+                    -webkit-backdrop-filter: blur(15px);
+                    padding: 25px;
+                    text-align: center;
+                    margin-top: auto;
+                    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.5);
+                    border-top: 1px solid rgba(255, 255, 255, 0.15);
+                }
+
+                footer .contact-section {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                    gap: 20px;
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 15px 0;
+                }
+
+                footer p {
+                    margin: 5px 0;
+                    font-size: 1.1em;
+                    color: #e2e8f0;
+                    font-weight: 400;
+                }
+
+                footer a {
+                    color: #3b82f6;
+                    text-decoration: none;
+                    transition: color 0.4s ease, transform 0.4s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 1.2em;
+                    font-weight: 500;
+                }
+
+                footer a:hover {
+                    color: #f97316;
+                    transform: translateX(8px);
+                }
+
+                footer i {
+                    font-size: 1.8em;
+                    transition: transform 0.4s ease;
+                }
+
+                footer a:hover i {
+                    transform: scale(1.3) rotate(5deg);
+                }
+
+                /* Animations */
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-60px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                /* Responsive Design */
+                @media (max-width: 768px) {
+                    header {
+                        flex-direction: column;
+                        margin: 15px;
+                        padding: 15px;
+                    }
+
+                    header img {
+                        width: 60px;
+                    }
+
+                    header h1 {
+                        font-size: 1.5em;
+                    }
+
+                    h2 {
+                        font-size: 2em;
+                    }
+
+                    .dashboard-container {
+                        grid-template-columns: 1fr;
+                        gap: 20px;
+                    }
+
+                    .card {
+                        padding: 15px;
+                    }
+
+                    .card h3 {
+                        font-size: 1.5em;
+                    }
+
+                    .card p,
+                    .card th,
+                    .card td {
+                        font-size: 0.9em;
+                    }
+
+                    .breeding-timeline-chart {
+                        height: 300px !important;
+                    }
+
+                    .back-link {
+                        margin: 10px 0;
+                    }
+
+                    footer .contact-section {
+                        grid-template-columns: 1fr;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    header img {
+                        width: 50px;
+                    }
+
+                    header h1 {
+                        font-size: 1.2em;
+                    }
+
+                    h2 {
+                        font-size: 1.6em;
+                    }
+
+                    .card {
+                        padding: 10px;
+                    }
+
+                    .card h3 {
+                        font-size: 1.3em;
+                    }
+
+                    .card p,
+                    .card th,
+                    .card td {
+                        font-size: 0.85em;
+                    }
+
+                    .breeding-timeline-chart {
+                        height: 250px !important;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <header>
+                <img src="/uploads/a_a_kennels_logo_transparent.png" alt="A&A Kennels Logo">
+                <h1>A&A Kennels - Stud Performance Dashboard</h1>
+            </header>
+            <h2>Stud Performance Dashboard</h2>
+            <div class="dashboard-container">
+                <div class="card">
+                    <h3>Breeding Success Rate</h3>
+                    <canvas id="successChart"></canvas>
+                </div>
+                <div class="card">
+                    <h3>Puppy Count Statistics</h3>
+                    <p>Average: ${avgPuppies}</p>
+                    <p>Min: ${minPuppies}</p>
+                    <p>Max: ${maxPuppies}</p>
+                </div>
+                <div class="card">
+                    <h3>Top Owners</h3>
+                    <div class="table-container">
+                        <table>
+                            <tr><th>Owner</th><th>Studs</th><th>Success Rate</th></tr>
+                            ${
+                              ownerStats.length
+                                ? ownerStats
+                                    .map(
+                                      (owner) => `
+                                  <tr>
+                                      <td>${owner.owner_name || "Unknown"}</td>
+                                      <td>${owner.stud_count || 0}</td>
+                                      <td>${
+                                        owner.stud_count > 0
+                                          ? ((owner.delivered_count / owner.stud_count) * 100).toFixed(1)
+                                          : 0
+                                      }%</td>
+                                  </tr>
+                              `
+                                    )
+                                    .join("")
+                                : '<tr><td colspan="3">No data available</td></tr>'
+                            }
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Breeding Timeline</h3>
+                    <canvas id="timelineChart" class="breeding-timeline-chart"></canvas>
+                </div>
+                <div class="card">
+                    <h3>Upcoming Events</h3>
+                    <div class="table-container">
+                        <table>
+                            <tr><th>Stud</th><th>Owner</th><th>Next Heat</th><th>Days Until Heat</th><th>Delivery Date</th></tr>
+                            ${
+                              upcomingEvents.length
+                                ? upcomingEvents
+                                    .map(
+                                      (event) => `
+                                  <tr ${
+                                    event.days_until_heat <= 7 && event.days_until_heat >= 0
+                                      ? 'class="heat-soon"'
+                                      : ""
+                                  }>
+                                      <td>${event.name || "Unknown"}</td>
+                                      <td>${event.owner_name || "Unknown"}</td>
+                                      <td>${event.next_heat_cycle || "N/A"}</td>
+                                      <td>${event.days_until_heat !== null ? event.days_until_heat : "N/A"}</td>
+                                      <td>${
+                                        event.female_status === "Waiting"
+                                          ? event.puppy_delivery_date || "N/A"
+                                          : "N/A"
+                                      }</td>
+                                  </tr>
+                              `
+                                    )
+                                    .join("")
+                                : '<tr><td colspan="5">No upcoming events</td></tr>'
+                            }
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="/admin-dashboard" class="back-link">Admin Dashboard</a>
+                <a href="/" class="back-link">View Male Studs</a>
+                <a href="/logout" class="back-link">Logout</a>
+            </div>
+            <footer>
+                <p>Contact Us:</p>
+                <div class="contact-section">
+                    <p>
+                        <a href="https://wa.me/917338040633" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-whatsapp"></i> 7338040633
+                        </a>
+                    </p>
+                    <p>
+                        <a href="https://www.facebook.com/share/1HdVyCqHuM/" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-facebook-f"></i> A&A Kennels
+                        </a>
+                    </p>
+                </div>
+            </footer>
+            <script>
+                const successCtx = document.getElementById("successChart").getContext("2d");
+                new Chart(successCtx, {
+                    type: "pie",
+                    data: {
+                        labels: ["Delivered", "Failed"],
+                        datasets: [{
+                            data: [${successRate.delivered || 0}, ${successRate.failed || 0}],
+                            backgroundColor: ["#27ae60", "#e74c3c"],
+                            borderColor: "#ecf0f1",
+                            borderWidth: 1,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: "top", labels: { color: "#ecf0f1" } },
+                            tooltip: { bodyFont: { size: 14 }, titleFont: { size: 16 } },
+                        },
+                    },
+                });
+
+                const timelineCtx = document.getElementById("timelineChart").getContext("2d");
+                new Chart(timelineCtx, {
+                    type: "line",
+                    data: {
+                        labels: [${timelineLabels.map((label) => `'${label}'`).join(",")}],
+                        datasets: [
+                            {
+                                label: "Heat Starts",
+                                data: [${heatCounts.join(",")}],
+                                borderColor: "#3498db",
+                                fill: false,
+                                tension: 0.4,
+                            },
+                            {
+                                label: "Breeding Events",
+                                data: [${breedingCounts.join(",")}],
+                                borderColor: "#e67e22",
+                                fill: false,
+                                tension: 0.4,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { ticks: { color: "#ecf0f1" } },
+                            y: { ticks: { color: "#ecf0f1" }, beginAtZero: true },
+                        },
+                        plugins: {
+                            legend: { labels: { color: "#ecf0f1" } },
+                            tooltip: { bodyFont: { size: 14 }, titleFont: { size: 16 } },
+                        },
+                    },
+                });
+            </script>
+        </body>
+        </html>
+      `;
+      res.send(html);
+    })
+    .catch((err) => {
+      console.error("Analysis route failed:", err);
+      res.status(500).send(`Error generating analysis: ${err.message}`);
+    });
+});
 // Forgot Password Submission
 app.post("/forgot-password", (req, res) => {
     const { email } = req.body;
